@@ -1,0 +1,1395 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hermes EVA Braille Studio</title>
+  <style>
+    @font-face {
+      font-family: "Ark Pixel";
+      src: url("../fonts/ark-pixel-font-12px-monospaced-ttf-v2026.05.07/ark-pixel-12px-monospaced-latin.ttf") format("truetype");
+      font-display: swap;
+    }
+
+    :root {
+      color-scheme: dark;
+      --bg: #090b0f;
+      --panel: #10141b;
+      --panel-2: #0d1118;
+      --line: #27303d;
+      --text: #eff5ff;
+      --muted: #92a0b3;
+      --faint: #526072;
+      --accent: #9f6cff;
+      --accent-2: #6dff8a;
+      --warn: #ff9a3d;
+      --danger: #ff5065;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .35);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(159, 108, 255, .08), transparent 260px),
+        var(--bg);
+      color: var(--text);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 0 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(9, 11, 15, .88);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #6942d9;
+      background: #161121;
+      color: var(--accent-2);
+      font-family: "Ark Pixel", ui-monospace, monospace;
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+      letter-spacing: 0;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      min-width: 0;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-2);
+      box-shadow: 0 0 18px rgba(109, 255, 138, .8);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+      gap: 18px;
+      padding: 18px;
+      min-height: 0;
+    }
+
+    aside,
+    .workspace {
+      min-width: 0;
+    }
+
+    aside {
+      display: grid;
+      align-content: start;
+      gap: 14px;
+    }
+
+    .panel {
+      background: rgba(16, 20, 27, .94);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-head {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .upload-zone {
+      position: relative;
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border: 1px dashed #435066;
+      background: #0b0f16;
+      cursor: pointer;
+    }
+
+    .upload-zone:hover {
+      border-color: var(--accent);
+    }
+
+    .upload-zone input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .upload-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .upload-meta {
+      color: var(--muted);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .preview-canvas {
+      width: 100%;
+      aspect-ratio: 1 / .72;
+      display: block;
+      background: #06080d;
+      border: 1px solid #1b2330;
+      image-rendering: pixelated;
+    }
+
+    .control-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    label,
+    .field-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .value {
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    select,
+    input[type="number"],
+    textarea {
+      width: 100%;
+      color: var(--text);
+      background: #080c12;
+      border: 1px solid #2a3340;
+      border-radius: 0;
+      outline: none;
+    }
+
+    select,
+    input[type="number"] {
+      height: 36px;
+      padding: 0 10px;
+    }
+
+    select:focus,
+    input[type="number"]:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(159, 108, 255, .18);
+    }
+
+    .switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+    }
+
+    .switch input {
+      width: 42px;
+      height: 22px;
+      appearance: none;
+      border: 1px solid #394456;
+      background: #06090e;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .switch input::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      background: var(--faint);
+      transition: transform .16s ease, background .16s ease;
+    }
+
+    .switch input:checked {
+      border-color: var(--accent-2);
+    }
+
+    .switch input:checked::after {
+      transform: translateX(20px);
+      background: var(--accent-2);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-rows: minmax(300px, 1fr) minmax(240px, .62fr);
+      gap: 18px;
+      min-height: calc(100vh - 100px);
+    }
+
+    .output-wrap {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 11px;
+      color: var(--text);
+      background: #151b25;
+      border: 1px solid #333e4d;
+      border-radius: 0;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .button:hover {
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .button.primary {
+      border-color: #6744db;
+      background: #211638;
+    }
+
+    .button:disabled {
+      cursor: not-allowed;
+      opacity: .45;
+    }
+
+    .braille-frame {
+      min-height: 0;
+      overflow: auto;
+      padding: 18px;
+      background:
+        linear-gradient(transparent 95%, rgba(255,255,255,.028) 95%) 0 0 / 100% 4px,
+        #05070b;
+      border-top: 1px solid var(--line);
+    }
+
+    .braille-output {
+      font-family: "Ark Pixel", Consolas, "Courier New", monospace;
+      font-size: var(--preview-size, 15px);
+      line-height: 1;
+      letter-spacing: 0;
+      color: #f7f3e9;
+      text-shadow: 0 0 8px currentColor;
+      white-space: pre;
+      width: max-content;
+      min-width: 100%;
+    }
+
+    .braille-output .line {
+      height: 1em;
+    }
+
+    .braille-output .cell {
+      display: inline-block;
+      width: 1ch;
+    }
+
+    .text-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      min-height: 0;
+    }
+
+    .text-grid .panel {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+    }
+
+    textarea {
+      min-height: 0;
+      resize: none;
+      padding: 12px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.42;
+      border: 0;
+      border-top: 1px solid var(--line);
+      background: #05070b;
+      color: #d8e6ff;
+    }
+
+    .metric {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .empty {
+      height: 100%;
+      min-height: 320px;
+      display: grid;
+      place-items: center;
+      color: var(--faint);
+      font-family: "Ark Pixel", Consolas, monospace;
+      font-size: 15px;
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      header {
+        height: auto;
+        min-height: 64px;
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px 16px;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+        padding: 12px;
+      }
+
+      .workspace {
+        grid-template-rows: minmax(320px, auto) minmax(420px, auto);
+        min-height: auto;
+      }
+
+      .text-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="mark">EVA</div>
+        <h1>Hermes Braille Studio</h1>
+      </div>
+      <div class="status">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="statusText">waiting for image</span>
+      </div>
+    </header>
+
+    <main>
+      <aside>
+        <section class="panel">
+          <div class="panel-head">
+            <span>Source</span>
+            <div class="actions">
+              <button id="loadSample" class="button" type="button">Sample</button>
+              <span class="metric" id="imageMetric">none</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <label class="upload-zone">
+              <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+              <span class="upload-title">
+                <span>Upload Image</span>
+                <span class="value">PNG JPG GIF WEBP</span>
+              </span>
+              <span class="upload-meta" id="fileName">No file selected</span>
+              <canvas id="sourcePreview" class="preview-canvas" width="720" height="520"></canvas>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <span>Pixel</span>
+            <span class="metric" id="cellMetric">0 cells</span>
+          </div>
+          <div class="panel-body control-grid">
+            <div class="field">
+              <label for="dotMode">Mode</label>
+              <select id="dotMode">
+                <option value="pixel-art" selected>Pixel Art Fidelity</option>
+                <option value="hermesmod">Hermes-Mod Linework</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="field-row">
+                <label for="width">Width</label>
+                <span class="value" id="widthValue">50</span>
+              </div>
+              <input id="width" type="range" min="16" max="72" value="50">
+            </div>
+
+            <div class="field">
+              <div class="field-row">
+                <label for="contrast">Contrast</label>
+                <span class="value" id="contrastValue">0.38</span>
+              </div>
+              <input id="contrast" type="range" min="0" max="0.8" step="0.01" value="0.38">
+            </div>
+
+            <div class="field">
+              <div class="field-row">
+                <label for="bgTolerance">Background Tolerance</label>
+                <span class="value" id="bgToleranceValue">28</span>
+              </div>
+              <input id="bgTolerance" type="range" min="0" max="90" value="28">
+            </div>
+
+            <div class="field">
+              <div class="field-row">
+                <label for="blankCutoff">Blank Cutoff</label>
+                <span class="value" id="blankCutoffValue">0.04</span>
+              </div>
+              <input id="blankCutoff" type="range" min="0" max="0.18" step="0.01" value="0.04">
+            </div>
+
+            <div class="field">
+              <div class="field-row">
+                <label for="coverage">Min Coverage</label>
+                <span class="value" id="coverageValue">0.05</span>
+              </div>
+              <input id="coverage" type="range" min="0" max="0.5" step="0.01" value="0.05">
+            </div>
+
+            <div class="field">
+              <div class="field-row">
+                <label for="previewSize">Preview Size</label>
+                <span class="value" id="previewSizeValue">15</span>
+              </div>
+              <input id="previewSize" type="range" min="9" max="24" value="15">
+            </div>
+
+            <label class="switch">
+              <span class="field-label">Sharpen</span>
+              <input id="sharpen" type="checkbox" checked>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <span>Color</span>
+            <span class="metric" id="colorMetric">default</span>
+          </div>
+          <div class="panel-body control-grid">
+            <div class="field">
+              <label for="colorStrategy">Strategy</label>
+              <select id="colorStrategy">
+                <option value="bright-local" selected>Bright Local</option>
+                <option value="active-average">Active Average</option>
+                <option value="none">None</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="field-row">
+                <label for="minLuma">Min Color Luma</label>
+                <span class="value" id="minLumaValue">0.54</span>
+              </div>
+              <input id="minLuma" type="range" min="0.30" max="0.78" step="0.01" value="0.54">
+            </div>
+
+            <div class="field">
+              <div class="field-row">
+                <label for="colorRadius">Color Radius</label>
+                <span class="value" id="colorRadiusValue">4</span>
+              </div>
+              <input id="colorRadius" type="range" min="1" max="10" value="4">
+            </div>
+
+            <label class="switch">
+              <span class="field-label">Uncolor White / Gray</span>
+              <input id="uncolorGray" type="checkbox" checked>
+            </label>
+          </div>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <section class="panel output-wrap">
+          <div class="panel-head">
+            <span>Preview</span>
+            <div class="actions">
+              <button id="copyRich" class="button" type="button" disabled>Copy Rich</button>
+              <button id="copyYaml" class="button" type="button" disabled>Copy YAML</button>
+              <button id="downloadYaml" class="button primary" type="button" disabled>Download YAML</button>
+            </div>
+          </div>
+          <div class="braille-frame">
+            <div id="output" class="braille-output" aria-live="polite">
+              <div class="empty">NO IMAGE</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="text-grid">
+          <section class="panel">
+            <div class="panel-head">
+              <span>Rich banner_hero</span>
+              <span class="metric" id="richMetric">0 chars</span>
+            </div>
+            <textarea id="richText" spellcheck="false" readonly></textarea>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <span>YAML</span>
+              <span class="metric" id="yamlMetric">0 chars</span>
+            </div>
+            <textarea id="yamlText" spellcheck="false" readonly></textarea>
+          </section>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const BRAILLE_BLANK = "\u2800";
+    const BRAILLE_BIT_GRID = [
+      [0x01, 0x08],
+      [0x02, 0x10],
+      [0x04, 0x20],
+      [0x40, 0x80],
+    ];
+
+    const els = {
+      fileInput: document.getElementById("fileInput"),
+      fileName: document.getElementById("fileName"),
+      imageMetric: document.getElementById("imageMetric"),
+      sourcePreview: document.getElementById("sourcePreview"),
+      output: document.getElementById("output"),
+      richText: document.getElementById("richText"),
+      yamlText: document.getElementById("yamlText"),
+      statusText: document.getElementById("statusText"),
+      cellMetric: document.getElementById("cellMetric"),
+      colorMetric: document.getElementById("colorMetric"),
+      richMetric: document.getElementById("richMetric"),
+      yamlMetric: document.getElementById("yamlMetric"),
+      copyRich: document.getElementById("copyRich"),
+      copyYaml: document.getElementById("copyYaml"),
+      downloadYaml: document.getElementById("downloadYaml"),
+      loadSample: document.getElementById("loadSample"),
+      width: document.getElementById("width"),
+      dotMode: document.getElementById("dotMode"),
+      contrast: document.getElementById("contrast"),
+      bgTolerance: document.getElementById("bgTolerance"),
+      blankCutoff: document.getElementById("blankCutoff"),
+      coverage: document.getElementById("coverage"),
+      previewSize: document.getElementById("previewSize"),
+      sharpen: document.getElementById("sharpen"),
+      colorStrategy: document.getElementById("colorStrategy"),
+      minLuma: document.getElementById("minLuma"),
+      colorRadius: document.getElementById("colorRadius"),
+      uncolorGray: document.getElementById("uncolorGray"),
+      widthValue: document.getElementById("widthValue"),
+      contrastValue: document.getElementById("contrastValue"),
+      bgToleranceValue: document.getElementById("bgToleranceValue"),
+      blankCutoffValue: document.getElementById("blankCutoffValue"),
+      coverageValue: document.getElementById("coverageValue"),
+      previewSizeValue: document.getElementById("previewSizeValue"),
+      minLumaValue: document.getElementById("minLumaValue"),
+      colorRadiusValue: document.getElementById("colorRadiusValue"),
+    };
+
+    let sourceImage = null;
+    let sourceName = "banner";
+    let renderTimer = 0;
+    let lastYaml = "";
+    let lastRich = "";
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function luminance(rgb) {
+      return (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
+    }
+
+    function rgbToHsv(rgb) {
+      const r = rgb[0] / 255;
+      const g = rgb[1] / 255;
+      const b = rgb[2] / 255;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const delta = max - min;
+      let h = 0;
+      if (delta !== 0) {
+        if (max === r) h = ((g - b) / delta) % 6;
+        else if (max === g) h = (b - r) / delta + 2;
+        else h = (r - g) / delta + 4;
+        h /= 6;
+        if (h < 0) h += 1;
+      }
+      return [h, max === 0 ? 0 : delta / max, max];
+    }
+
+    function hsvToRgb(hsv) {
+      const [h, s, v] = hsv;
+      const i = Math.floor(h * 6);
+      const f = h * 6 - i;
+      const p = v * (1 - s);
+      const q = v * (1 - f * s);
+      const t = v * (1 - (1 - f) * s);
+      const mod = i % 6;
+      const rgb = mod === 0 ? [v, t, p]
+        : mod === 1 ? [q, v, p]
+        : mod === 2 ? [p, v, t]
+        : mod === 3 ? [p, q, v]
+        : mod === 4 ? [t, p, v]
+        : [v, p, q];
+      return rgb.map((channel) => Math.round(channel * 255));
+    }
+
+    function saturation(rgb) {
+      return rgbToHsv(rgb)[1];
+    }
+
+    function colorDistance(a, b) {
+      const dr = a[0] - b[0];
+      const dg = a[1] - b[1];
+      const db = a[2] - b[2];
+      return Math.sqrt(dr * dr + dg * dg + db * db);
+    }
+
+    function toHex(rgb) {
+      return "#" + rgb.map((channel) => {
+        const value = clamp(Math.round(channel), 0, 255);
+        return value.toString(16).padStart(2, "0");
+      }).join("");
+    }
+
+    function isWhiteOrGray(rgb, options) {
+      if (!options.uncolorGray) return false;
+      const lum = luminance(rgb);
+      const sat = saturation(rgb);
+      return sat < 0.16 || (lum > 0.86 && sat < 0.28);
+    }
+
+    function isPixelArtBlankWhite(rgb) {
+      return luminance(rgb) > 0.80 && saturation(rgb) < 0.22;
+    }
+
+    function terminalVisibleColor(rgb, options) {
+      const hsv = rgbToHsv(rgb);
+      hsv[1] = clamp(Math.max(hsv[1], 0.62) * 1.08, 0, 1);
+      hsv[2] = clamp(Math.max(hsv[2], 0.78), 0, 1);
+      let visible = hsvToRgb(hsv);
+      const lum = luminance(visible);
+      if (lum >= options.minLuma) return visible;
+      const blend = clamp((options.minLuma - lum) / Math.max(0.001, 1 - lum), 0, 1);
+      visible = visible.map((channel) => Math.round(channel + (255 - channel) * blend));
+      return visible;
+    }
+
+    function getPixel(data, width, x, y) {
+      const index = (y * width + x) * 4;
+      return [
+        data[index],
+        data[index + 1],
+        data[index + 2],
+        data[index + 3],
+      ];
+    }
+
+    function setPixel(data, width, x, y, rgba) {
+      const index = (y * width + x) * 4;
+      data[index] = rgba[0];
+      data[index + 1] = rgba[1];
+      data[index + 2] = rgba[2];
+      data[index + 3] = rgba[3];
+    }
+
+    function detectBackground(imageData) {
+      const { width, height, data } = imageData;
+      const counts = new Map();
+      const add = (x, y) => {
+        const [r, g, b, a] = getPixel(data, width, x, y);
+        if (a === 0) return;
+        const key = `${r},${g},${b}`;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      };
+      for (let x = 0; x < width; x += 1) {
+        add(x, 0);
+        add(x, height - 1);
+      }
+      for (let y = 0; y < height; y += 1) {
+        add(0, y);
+        add(width - 1, y);
+      }
+      let best = "0,0,0";
+      let bestCount = -1;
+      counts.forEach((count, key) => {
+        if (count > bestCount) {
+          best = key;
+          bestCount = count;
+        }
+      });
+      return best.split(",").map(Number);
+    }
+
+    function contentBox(imageData, bg, options) {
+      const { width, height, data } = imageData;
+      let minX = width;
+      let minY = height;
+      let maxX = -1;
+      let maxY = -1;
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const [r, g, b, a] = getPixel(data, width, x, y);
+          if (a < 12) continue;
+          if (colorDistance([r, g, b], bg) <= options.bgTolerance) continue;
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+        }
+      }
+      if (maxX < minX || maxY < minY) {
+        return { x: 0, y: 0, width, height };
+      }
+      minX = Math.max(0, minX - 1);
+      minY = Math.max(0, minY - 1);
+      maxX = Math.min(width - 1, maxX + 1);
+      maxY = Math.min(height - 1, maxY + 1);
+      return {
+        x: minX,
+        y: minY,
+        width: maxX - minX + 1,
+        height: maxY - minY + 1,
+      };
+    }
+
+    function drawImageDataToCanvas(imageData) {
+      const canvas = document.createElement("canvas");
+      canvas.width = imageData.width;
+      canvas.height = imageData.height;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.putImageData(imageData, 0, 0);
+      return canvas;
+    }
+
+    function flattenBackground(imageData, bg, options) {
+      const output = new ImageData(new Uint8ClampedArray(imageData.data), imageData.width, imageData.height);
+      const { width, height, data } = output;
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const [r, g, b, a] = getPixel(data, width, x, y);
+          if (a < 12 || colorDistance([r, g, b], bg) <= options.bgTolerance) {
+            setPixel(data, width, x, y, [255, 255, 255, 255]);
+          }
+        }
+      }
+      return output;
+    }
+
+    function resizeCanvas(sourceCanvas, width, height, smoothing = true) {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.imageSmoothingEnabled = smoothing;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(sourceCanvas, 0, 0, width, height);
+      return canvas;
+    }
+
+    function preprocess(source, options) {
+      const base = document.createElement("canvas");
+      base.width = source.naturalWidth;
+      base.height = source.naturalHeight;
+      const baseCtx = base.getContext("2d", { willReadFrequently: true });
+      baseCtx.drawImage(source, 0, 0);
+      const baseData = baseCtx.getImageData(0, 0, base.width, base.height);
+      const bg = detectBackground(baseData);
+      const box = contentBox(baseData, bg, options);
+
+      const cropCanvas = document.createElement("canvas");
+      cropCanvas.width = box.width;
+      cropCanvas.height = box.height;
+      const cropCtx = cropCanvas.getContext("2d", { willReadFrequently: true });
+      cropCtx.drawImage(base, box.x, box.y, box.width, box.height, 0, 0, box.width, box.height);
+      const cropData = cropCtx.getImageData(0, 0, box.width, box.height);
+      const flattened = flattenBackground(cropData, bg, options);
+      const flattenedCanvas = drawImageDataToCanvas(flattened);
+
+      const rows = Math.max(1, Math.round((box.height / Math.max(1, box.width)) * options.width * 0.5));
+      const targetWidth = Math.max(1, options.width * 2);
+      const targetHeight = Math.max(1, rows * 4);
+      const colorSourceCanvas = options.dotMode === "pixel-art" ? cropCanvas : flattenedCanvas;
+      const colorCanvas = resizeCanvas(colorSourceCanvas, targetWidth, targetHeight, options.dotMode !== "pixel-art");
+      const colorCtx = colorCanvas.getContext("2d", { willReadFrequently: true });
+      const colorData = colorCtx.getImageData(0, 0, targetWidth, targetHeight);
+      const dotGray = options.dotMode === "pixel-art" ? null : buildDotLayer(colorData, options);
+
+      return {
+        colorData,
+        dotGray,
+        width: targetWidth,
+        height: targetHeight,
+        columns: options.width,
+        rows,
+        bg,
+      };
+    }
+
+    function buildDotLayer(colorData, options) {
+      const { width, height, data } = colorData;
+      const gray = new Float32Array(width * height);
+      let min = 255;
+      let max = 0;
+      for (let i = 0; i < width * height; i += 1) {
+        const offset = i * 4;
+        const value = 0.2126 * data[offset] + 0.7152 * data[offset + 1] + 0.0722 * data[offset + 2];
+        gray[i] = value;
+        min = Math.min(min, value);
+        max = Math.max(max, value);
+      }
+      const span = Math.max(1, max - min);
+      for (let i = 0; i < gray.length; i += 1) {
+        let value = ((gray[i] - min) / span) * 255;
+        value = (value - 128) * (1 + options.contrast) + 128;
+        gray[i] = clamp(value, 0, 255);
+      }
+      return options.sharpen ? sharpenGray(gray, width, height) : gray;
+    }
+
+    function sharpenGray(gray, width, height) {
+      const output = new Float32Array(gray.length);
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const center = gray[y * width + x] * 5;
+          const up = y > 0 ? gray[(y - 1) * width + x] : gray[y * width + x];
+          const down = y + 1 < height ? gray[(y + 1) * width + x] : gray[y * width + x];
+          const left = x > 0 ? gray[y * width + x - 1] : gray[y * width + x];
+          const right = x + 1 < width ? gray[y * width + x + 1] : gray[y * width + x];
+          output[y * width + x] = clamp(center - up - down - left - right, 0, 255);
+        }
+      }
+      return output;
+    }
+
+    function adaptiveThreshold(avgDarkness) {
+      if (avgDarkness >= 0.72) return 0.34;
+      if (avgDarkness >= 0.48) return 0.42;
+      return 0.5;
+    }
+
+    function brightLocalColor(colorData, x, y, options) {
+      const { width, height, data } = colorData;
+      const radiusX = options.colorRadius;
+      const radiusY = Math.max(options.colorRadius + 1, Math.round(options.colorRadius * 1.4));
+      let total = 0;
+      const channels = [0, 0, 0];
+      const left = Math.max(0, x - radiusX);
+      const top = Math.max(0, y - radiusY);
+      const right = Math.min(width, x + 2 + radiusX);
+      const bottom = Math.min(height, y + 4 + radiusY);
+
+      for (let yy = top; yy < bottom; yy += 1) {
+        for (let xx = left; xx < right; xx += 1) {
+          const [r, g, b, a] = getPixel(data, width, xx, yy);
+          if (a < 12) continue;
+          const rgb = [r, g, b];
+          const lum = luminance(rgb);
+          const sat = saturation(rgb);
+          if (isWhiteOrGray(rgb, options) || lum < 0.05) continue;
+          const distance = Math.abs(xx - (x + 0.5)) + Math.abs(yy - (y + 1.5));
+          const weight = Math.pow(sat, 1.4) * (0.4 + lum) / (1 + distance * 0.18);
+          if (weight <= 0) continue;
+          total += weight;
+          channels[0] += r * weight;
+          channels[1] += g * weight;
+          channels[2] += b * weight;
+        }
+      }
+
+      if (!total) return null;
+      const rgb = channels.map((channel) => Math.round(channel / total));
+      if (isWhiteOrGray(rgb, options)) return null;
+      return terminalVisibleColor(rgb, options);
+    }
+
+    function averageActiveColor(samples, options) {
+      let total = 0;
+      const channels = [0, 0, 0];
+      samples.forEach((sample) => {
+        const rgb = sample.rgb;
+        if (isWhiteOrGray(rgb, options)) return;
+        const weight = Math.max(sample.darkness, sample.alpha / 255);
+        total += weight;
+        channels[0] += rgb[0] * weight;
+        channels[1] += rgb[1] * weight;
+        channels[2] += rgb[2] * weight;
+      });
+      if (!total) return null;
+      return terminalVisibleColor(channels.map((channel) => Math.round(channel / total)), options);
+    }
+
+    function renderBraille(preprocessed, options) {
+      const { width, height, dotGray, colorData } = preprocessed;
+      const lines = [];
+      let activeCells = 0;
+      let colorSpans = 0;
+
+      for (let y = 0; y < height; y += 4) {
+        const cells = [];
+        for (let x = 0; x < width; x += 2) {
+          let bits = 0;
+          let darknessTotal = 0;
+          let totalSamples = 0;
+          const activeSamples = [];
+
+          for (let dy = 0; dy < 4; dy += 1) {
+            for (let dx = 0; dx < 2; dx += 1) {
+              const sx = x + dx;
+              const sy = y + dy;
+              if (sx >= width || sy >= height) continue;
+              if (options.dotMode === "pixel-art") {
+                const [r, g, b, a] = getPixel(colorData.data, width, sx, sy);
+                const rgb = [r, g, b];
+                const active = a >= 12
+                  && colorDistance(rgb, preprocessed.bg) > options.bgTolerance
+                  && !isPixelArtBlankWhite(rgb);
+                darknessTotal += active ? 1 : 0;
+              } else {
+                darknessTotal += (255 - dotGray[sy * width + sx]) / 255;
+              }
+              totalSamples += 1;
+            }
+          }
+
+          const avgDarkness = totalSamples ? darknessTotal / totalSamples : 0;
+          if (avgDarkness < options.blankCutoff) {
+            cells.push({ char: BRAILLE_BLANK, color: null });
+            continue;
+          }
+
+          const threshold = adaptiveThreshold(avgDarkness);
+          for (let dy = 0; dy < 4; dy += 1) {
+            for (let dx = 0; dx < 2; dx += 1) {
+              const sx = x + dx;
+              const sy = y + dy;
+              if (sx >= width || sy >= height) continue;
+              const rgba = getPixel(colorData.data, width, sx, sy);
+              const rgb = rgba.slice(0, 3);
+              const darkness = options.dotMode === "pixel-art"
+                ? (rgba[3] >= 12 && colorDistance(rgb, preprocessed.bg) > options.bgTolerance && !isPixelArtBlankWhite(rgb) ? 1 : 0)
+                : (255 - dotGray[sy * width + sx]) / 255;
+              if (options.dotMode === "pixel-art" ? darkness > 0 : darkness >= threshold) {
+                bits |= BRAILLE_BIT_GRID[dy][dx];
+                activeSamples.push({
+                  rgb: rgba.slice(0, 3),
+                  alpha: rgba[3],
+                  darkness,
+                });
+              }
+            }
+          }
+
+          if (!bits || activeSamples.length / Math.max(1, totalSamples) < options.coverage) {
+            cells.push({ char: BRAILLE_BLANK, color: null });
+            continue;
+          }
+
+          let color = null;
+          if (options.colorStrategy === "none") {
+            color = null;
+          } else if (options.dotMode === "pixel-art" || options.colorStrategy === "active-average") {
+            const rgb = averageActiveColor(activeSamples, options);
+            color = rgb ? toHex(rgb) : null;
+          } else if (options.colorStrategy === "bright-local") {
+            const rgb = brightLocalColor(colorData, x, y, options);
+            color = rgb ? toHex(rgb) : null;
+          }
+
+          activeCells += 1;
+          if (color) colorSpans += 1;
+          cells.push({ char: String.fromCharCode(0x2800 + bits), color });
+        }
+        while (cells.length && cells[cells.length - 1].char === BRAILLE_BLANK && !cells[cells.length - 1].color) {
+          cells.pop();
+        }
+        lines.push(cells);
+      }
+
+      while (lines.length && lines[0].every((cell) => cell.char === BRAILLE_BLANK)) lines.shift();
+      while (lines.length && lines[lines.length - 1].every((cell) => cell.char === BRAILLE_BLANK)) lines.pop();
+
+      return { lines, activeCells, colorSpans };
+    }
+
+    function richFromLines(lines) {
+      return lines.map((line) => {
+        let result = "";
+        let activeColor = undefined;
+        let buffer = "";
+        const flush = () => {
+          if (!buffer) return;
+          result += activeColor ? `[${activeColor}]${buffer}[/]` : buffer;
+          buffer = "";
+        };
+        line.forEach((cell) => {
+          if (cell.color !== activeColor) {
+            flush();
+            activeColor = cell.color;
+          }
+          buffer += cell.char;
+        });
+        flush();
+        return result;
+      }).join("\n");
+    }
+
+    function yamlBlock(key, value) {
+      if (!value) return `${key}: ""`;
+      return `${key}: |-\n${value.split("\n").map((line) => `  ${line}`).join("\n")}`;
+    }
+
+    function drawPreview(image) {
+      const canvas = els.sourcePreview;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#06080d";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const scale = Math.min(canvas.width / image.naturalWidth, canvas.height / image.naturalHeight);
+      const width = image.naturalWidth * scale;
+      const height = image.naturalHeight * scale;
+      const x = (canvas.width - width) / 2;
+      const y = (canvas.height - height) / 2;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(image, x, y, width, height);
+    }
+
+    function updateLabels() {
+      els.widthValue.textContent = els.width.value;
+      els.contrastValue.textContent = Number(els.contrast.value).toFixed(2);
+      els.bgToleranceValue.textContent = els.bgTolerance.value;
+      els.blankCutoffValue.textContent = Number(els.blankCutoff.value).toFixed(2);
+      els.coverageValue.textContent = Number(els.coverage.value).toFixed(2);
+      els.previewSizeValue.textContent = els.previewSize.value;
+      els.minLumaValue.textContent = Number(els.minLuma.value).toFixed(2);
+      els.colorRadiusValue.textContent = els.colorRadius.value;
+      els.output.style.setProperty("--preview-size", `${els.previewSize.value}px`);
+    }
+
+    function readOptions() {
+      return {
+        width: Number(els.width.value),
+        contrast: Number(els.contrast.value),
+        bgTolerance: Number(els.bgTolerance.value),
+        blankCutoff: Number(els.blankCutoff.value),
+        coverage: Number(els.coverage.value),
+        sharpen: els.sharpen.checked,
+        dotMode: els.dotMode.value,
+        colorStrategy: els.colorStrategy.value,
+        minLuma: Number(els.minLuma.value),
+        colorRadius: Number(els.colorRadius.value),
+        uncolorGray: els.uncolorGray.checked,
+      };
+    }
+
+    function renderOutput(lines) {
+      els.output.textContent = "";
+      if (!lines.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "NO DOTS";
+        els.output.appendChild(empty);
+        return;
+      }
+
+      const frag = document.createDocumentFragment();
+      lines.forEach((line) => {
+        const div = document.createElement("div");
+        div.className = "line";
+        line.forEach((cell) => {
+          const span = document.createElement("span");
+          span.className = "cell";
+          span.textContent = cell.char;
+          if (cell.color) span.style.color = cell.color;
+          div.appendChild(span);
+        });
+        frag.appendChild(div);
+      });
+      els.output.appendChild(frag);
+    }
+
+    function renderNow() {
+      updateLabels();
+      if (!sourceImage) return;
+      const options = readOptions();
+      els.statusText.textContent = "rendering";
+      try {
+        const preprocessed = preprocess(sourceImage, options);
+        const result = renderBraille(preprocessed, options);
+        renderOutput(result.lines);
+        lastRich = richFromLines(result.lines);
+        lastYaml = yamlBlock("banner_hero", lastRich);
+        els.richText.value = lastRich;
+        els.yamlText.value = lastYaml;
+        els.cellMetric.textContent = `${result.activeCells} cells`;
+        els.colorMetric.textContent = `${result.colorSpans} colored`;
+        els.richMetric.textContent = `${lastRich.length} chars`;
+        els.yamlMetric.textContent = `${lastYaml.length} chars`;
+        els.statusText.textContent = "ready";
+        els.copyRich.disabled = !lastRich;
+        els.copyYaml.disabled = !lastYaml;
+        els.downloadYaml.disabled = !lastYaml;
+      } catch (error) {
+        els.statusText.textContent = "render failed";
+        console.error(error);
+      }
+    }
+
+    function scheduleRender() {
+      updateLabels();
+      if (!sourceImage) return;
+      window.clearTimeout(renderTimer);
+      renderTimer = window.setTimeout(renderNow, 80);
+    }
+
+    async function copyText(text) {
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          fallbackCopy(text);
+        }
+        els.statusText.textContent = "copied";
+      } catch (error) {
+        const copied = fallbackCopy(text);
+        els.statusText.textContent = copied ? "copied" : "copy failed";
+      }
+      window.setTimeout(() => {
+        if (sourceImage) els.statusText.textContent = "ready";
+      }, 900);
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      textarea.style.top = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      let copied = false;
+      try {
+        copied = document.execCommand("copy");
+      } catch (error) {
+        copied = false;
+      }
+      textarea.remove();
+      return copied;
+    }
+
+    function downloadYaml() {
+      const safeName = sourceName.replace(/\.[^.]+$/, "").replace(/[^a-z0-9_-]+/gi, "-").replace(/^-|-$/g, "") || "banner";
+      const blob = new Blob([lastYaml + "\n"], { type: "text/yaml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${safeName}-banner-hero.yaml`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function handleFile(file) {
+      if (!file) return;
+      sourceName = file.name;
+      const url = URL.createObjectURL(file);
+      const image = new Image();
+      image.decoding = "async";
+      image.onload = () => {
+        URL.revokeObjectURL(url);
+        sourceImage = image;
+        els.fileName.textContent = file.name;
+        els.imageMetric.textContent = `${image.naturalWidth}x${image.naturalHeight}`;
+        drawPreview(image);
+        renderNow();
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(url);
+        els.statusText.textContent = "load failed";
+      };
+      image.src = url;
+    }
+
+    function loadSample() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 96;
+      canvas.height = 72;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#14171c";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#dedee8";
+      ctx.fillRect(56, 12, 23, 24);
+      ctx.fillRect(45, 24, 22, 18);
+      ctx.fillStyle = "#6e3bd1";
+      ctx.fillRect(22, 16, 40, 9);
+      ctx.fillRect(30, 25, 29, 17);
+      ctx.fillRect(42, 42, 18, 17);
+      ctx.fillStyle = "#75ff57";
+      ctx.fillRect(29, 24, 7, 19);
+      ctx.fillRect(62, 7, 18, 5);
+      ctx.fillStyle = "#ff8f2a";
+      ctx.fillRect(36, 43, 8, 15);
+      ctx.fillStyle = "#05070b";
+      ctx.fillRect(18, 23, 14, 6);
+      ctx.fillRect(31, 35, 20, 4);
+      ctx.fillRect(60, 26, 6, 13);
+      ctx.fillStyle = "#9f6cff";
+      ctx.fillRect(12, 11, 26, 4);
+      ctx.fillRect(18, 13, 7, 20);
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        handleFile(new File([blob], "eva-sample.png", { type: "image/png" }));
+      }, "image/png");
+    }
+
+    function bind() {
+      updateLabels();
+      els.fileInput.addEventListener("change", () => handleFile(els.fileInput.files[0]));
+      els.loadSample.addEventListener("click", loadSample);
+      [
+        els.width,
+        els.dotMode,
+        els.contrast,
+        els.bgTolerance,
+        els.blankCutoff,
+        els.coverage,
+        els.previewSize,
+        els.sharpen,
+        els.colorStrategy,
+        els.minLuma,
+        els.colorRadius,
+        els.uncolorGray,
+      ].forEach((el) => el.addEventListener("input", scheduleRender));
+      els.copyRich.addEventListener("click", () => copyText(lastRich));
+      els.copyYaml.addEventListener("click", () => copyText(lastYaml));
+      els.downloadYaml.addEventListener("click", downloadYaml);
+    }
+
+    window.__brailleStudio = {
+      async loadDataUrl(dataUrl, name = "inline-image.png") {
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        await handleFile(new File([blob], name, { type: blob.type || "image/png" }));
+      },
+      state() {
+        return {
+          status: els.statusText.textContent,
+          cells: els.cellMetric.textContent,
+          colors: els.colorMetric.textContent,
+          richLength: els.richText.value.length,
+          yamlLength: els.yamlText.value.length,
+          yamlHasBanner: els.yamlText.value.includes("banner_hero: |-"),
+          visibleCells: els.output.querySelectorAll(".cell").length,
+          coloredCells: els.output.querySelectorAll(".cell[style*='color']").length,
+          copyDisabled: els.copyYaml.disabled,
+          downloadDisabled: els.downloadYaml.disabled,
+        };
+      },
+    };
+
+    bind();
+  </script>
+</body>
+</html>

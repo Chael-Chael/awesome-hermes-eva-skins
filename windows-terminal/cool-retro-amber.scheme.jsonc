@@ -1,0 +1,23 @@
+{
+  "background": "#0B0703",
+  "black": "#0B0703",
+  "blue": "#00AAFF",
+  "brightBlack": "#3A2B18",
+  "brightBlue": "#66CCFF",
+  "brightCyan": "#80FFFF",
+  "brightGreen": "#6DFF9C",
+  "brightPurple": "#FF99DD",
+  "brightRed": "#FF6B5F",
+  "brightWhite": "#FFF0D0",
+  "brightYellow": "#FFC04A",
+  "cursorColor": "#FFAD32",
+  "cyan": "#00FFFF",
+  "foreground": "#E88918",
+  "green": "#00FF66",
+  "name": "Cool Retro Amber",
+  "purple": "#FF66CC",
+  "red": "#FF3B30",
+  "selectionBackground": "#4A3318",
+  "white": "#C9BBA6",
+  "yellow": "#E8A018"
+}

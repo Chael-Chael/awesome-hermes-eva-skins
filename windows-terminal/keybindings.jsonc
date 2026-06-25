@@ -1,0 +1,10 @@
+[
+  {
+    "command": "toggleShaderEffects",
+    "keys": "shift+f10"
+  },
+  {
+    "command": "toggleFocusMode",
+    "keys": "shift+f11"
+  }
+]

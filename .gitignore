@@ -1,0 +1,23 @@
+*.log
+*.tmp
+*.bak
+
+# Local Hermes runtime state. Do not publish credentials, sessions, caches, or DBs.
+.env
+auth.json
+*.db
+*.db-shm
+*.db-wal
+logs/
+cache/
+sessions/
+
+# Full local terminal configs can contain machine-specific paths and profile IDs.
+settings.json
+settings.json.bak*
+
+# Python/editor noise.
+__pycache__/
+.pytest_cache/
+.venv/
+.vscode/

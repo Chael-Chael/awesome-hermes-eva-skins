@@ -1,0 +1,25 @@
+{
+  "antialiasingMode": "aliased",
+  "colorScheme": "Cool Retro Amber",
+  "commandline": "%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+  "cursorHeight": 25,
+  "cursorShape": "filledBox",
+
+  // Replace this with the absolute path where you copied the shader.
+  // Example: C:\\Users\\you\\AppData\\Local\\WindowsTerminalShaders\\cool-retro-frame-amber.hlsl
+  "experimental.pixelShaderPath": "C:\\Users\\<YOU>\\AppData\\Local\\WindowsTerminalShaders\\cool-retro-frame-amber.hlsl",
+  "experimental.retroTerminalEffect": false,
+
+  "font": {
+    "builtinGlyphs": true,
+    "face": "Ark Pixel 12px Mono zh_cn, Ark Pixel 12px Mono ja, Ark Pixel 12px Mono ko, Ark Pixel 12px Mono latin",
+    "size": 16,
+    "weight": "normal"
+  },
+  "guid": "{879ed3f2-0c71-4c09-b164-923940df3d54}",
+  "hidden": false,
+  "icon": "\ue756",
+  "name": "Cool Retro Frame Amber",
+  "opacity": 100,
+  "useAcrylic": false
+}
