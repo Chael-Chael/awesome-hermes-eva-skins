@@ -1,5 +1,7 @@
 # awesome-hermes-eva-skins
 
+English | [简体中文](docs/README_zh-CN.md)
+
 EVA-style skins for Hermes Agent, paired with a Windows Terminal amber CRT profile and pixel shader.
 
 This repo intentionally ships only reusable theme assets. It does not include a full local Windows Terminal `settings.json` or a full Hermes home directory, because those files often contain machine-specific paths, profile IDs, sessions, caches, and credentials.
