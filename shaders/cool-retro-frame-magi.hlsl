@@ -1,6 +1,6 @@
 // Based on Microsoft Terminal samples/PixelShaders/Retro.hlsl.
-// Readable CRT variant: amber phosphor for neutral text, stronger source-color
-// preservation for saturated ANSI colors, with grain, blacklevel, and frame.
+// EVA MAGI CRT variant: mint phosphor for neutral text, black-green screen
+// floor, and stronger source-color preservation for orange/red status colors.
 
 Texture2D shaderTexture;
 SamplerState samplerState;
@@ -16,29 +16,28 @@ cbuffer PixelShaderSettings
 #define SCANLINE_FACTOR 0.26f
 #define SCALED_SCANLINE_PERIOD Scale
 #define SCALED_GAUSSIAN_SIGMA (2.0f * Scale)
-#define GLOW_STRENGTH 0.24f
+#define GLOW_STRENGTH 0.40f
 #define ENABLE_GRAIN 1
 #define GRAIN_INTENSITY 0.012f
 #define ENABLE_BLACKLEVEL 1
 #define REFRESHLINE_STRENGTH 0.028f
 #define CURVE_INTENSITY 0.55f
 #define RGB_SHIFT 0.42f
-#define RGB_ABERRATION_STRENGTH 0.12f
+#define RGB_ABERRATION_STRENGTH 0.35f
 #define PIXEL_SNAP 0
 #define PIXEL_BLOCK_SIZE 1.0f
-#define CRT_FONT_COLOR float3(1.000f, 0.620f, 0.105f)
-// #define CRT_BACKGROUND_COLOR float3(0.043f, 0.030f, 0.010f)
-#define CRT_BACKGROUND_COLOR float3(0.150f, 0.075f, 0.012f)
-#define CRT_CHROMA 0.20f
-#define CRT_COLOR_PRESERVE 0.65f
-#define CRT_SCREEN_BRIGHTNESS 1.3f
-#define CRT_BLACK_FLOOR float3(0.055f, 0.038f, 0.013f)
+#define CRT_FONT_COLOR float3(0.624f, 1.000f, 0.898f)
+#define CRT_BACKGROUND_COLOR float3(0.008f, 0.028f, 0.018f)
+#define CRT_CHROMA 0.32f
+#define CRT_COLOR_PRESERVE 0.72f
+#define CRT_SCREEN_BRIGHTNESS 1.18f
+#define CRT_BLACK_FLOOR float3(0.018f, 0.048f, 0.032f)
 #define CRT_DIM_TEXT_LUMA_GATE 0.075f
 #define CRT_DIM_TEXT_LUMA_FLOOR 0.28f
 #define OVERSCAN_PERCENTAGE 0.018f
-#define FRAME_COLOR float3(0.030f, 0.026f, 0.020f)
-#define BEZEL_COLOR float3(0.075f, 0.060f, 0.043f)
-#define FRAME_HIGHLIGHT float3(0.24f, 0.20f, 0.15f)
+#define FRAME_COLOR float3(0.008f, 0.018f, 0.013f)
+#define BEZEL_COLOR float3(0.028f, 0.075f, 0.046f)
+#define FRAME_HIGHLIGHT float3(0.20f, 0.48f, 0.34f)
 #define VIGNETTE_STRENGTH 0.48f
 #define PHOSPHOR_HOT_GLOW 0.18f
 

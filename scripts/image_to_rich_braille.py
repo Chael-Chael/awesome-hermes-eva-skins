@@ -28,6 +28,19 @@ BRAILLE_BIT_GRID = (
     (0x04, 0x20),
     (0x40, 0x80),
 )
+
+PIXEL_ART_WHITE_TINT = (168, 224, 255)
+PIXEL_ART_NEUTRAL_SHADOW = (128, 210, 255)
+
+
+def set_pixel_art_tints(
+    *,
+    white_tint: tuple[int, int, int],
+    neutral_shadow: tuple[int, int, int],
+) -> None:
+    global PIXEL_ART_WHITE_TINT, PIXEL_ART_NEUTRAL_SHADOW
+    PIXEL_ART_WHITE_TINT = white_tint
+    PIXEL_ART_NEUTRAL_SHADOW = neutral_shadow
 QUADRANT_CHARS = {
     0b0000: " ",
     0b0001: "▘",
@@ -555,7 +568,7 @@ def terminal_visible_color(rgb: Sequence[int]) -> tuple[int, int, int]:
 def pixel_art_visible_color(rgb: Sequence[int]) -> tuple[int, int, int]:
     """Map colored pixel art with the current EVA terminal-lab source settings."""
     if is_pixel_art_blank_white(rgb):
-        return (255, 255, 255)
+        return PIXEL_ART_WHITE_TINT
     r, g, b = (channel / 255.0 for channel in rgb[:3])
     h, s, v = colorsys.rgb_to_hsv(r, g, b)
     if is_pixel_art_neutral(rgb):
@@ -578,11 +591,12 @@ def pixel_art_visible_color(rgb: Sequence[int]) -> tuple[int, int, int]:
 
 
 def pixel_art_neutral_color(rgb: Sequence[int]) -> tuple[int, int, int]:
-    """Keep white armor and gray shading distinct instead of collapsing them."""
-    tint = (154, 166, 184)
+    """Lift neutral gray into a cool, shader-preserved white instead of pure white."""
     lum = luminance(rgb)
-    level = clamp((0.14 + lum * 0.72) * 1.4, 0.0, 1.0)
-    return tuple(round(channel * level) for channel in tint)  # type: ignore[return-value]
+    lift = clamp(0.20 + lum * 0.80, 0.0, 1.0)
+    shadow = PIXEL_ART_NEUTRAL_SHADOW
+    cool_white = PIXEL_ART_WHITE_TINT
+    return tuple(round(shadow[index] + (cool_white[index] - shadow[index]) * lift) for index in range(3))  # type: ignore[return-value]
 
 
 def is_pixel_art_neutral(rgb: Sequence[int]) -> bool:
@@ -593,7 +607,7 @@ def is_pixel_art_neutral(rgb: Sequence[int]) -> bool:
     chr_value = chroma(rgb)
     r, g, b = (channel / 255.0 for channel in rgb[:3])
     hue, _, _ = colorsys.rgb_to_hsv(r, g, b)
-    if sat <= 0.18:
+    if sat <= 0.21:
         return True
     if chr_value <= 0.16 and lum >= 0.16:
         return True
@@ -620,7 +634,7 @@ def is_pixel_art_ink(rgb: Sequence[int]) -> bool:
     lum = luminance(rgb)
     sat = saturation(rgb)
     max_channel = max(int(channel) for channel in rgb[:3]) / 255.0
-    return max_channel < 0.16 or (lum <= 0.32 and sat <= 0.31)
+    return max_channel < 0.16 or (lum <= 0.27 and sat <= 0.0)
 
 
 def has_pixel_art_fill(rgb: Sequence[int]) -> bool:

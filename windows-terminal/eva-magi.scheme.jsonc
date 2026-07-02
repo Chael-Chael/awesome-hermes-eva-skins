@@ -1,0 +1,23 @@
+{
+  "background": "#020704",
+  "black": "#020704",
+  "blue": "#39A6FF",
+  "brightBlack": "#3A7054",
+  "brightBlue": "#75C8FF",
+  "brightCyan": "#B8FFF0",
+  "brightGreen": "#67FF85",
+  "brightPurple": "#E18CFF",
+  "brightRed": "#FF6B4A",
+  "brightWhite": "#F3FFF9",
+  "brightYellow": "#FFD06A",
+  "cursorColor": "#FF7A2D",
+  "cyan": "#7CFFE0",
+  "foreground": "#9FFFE5",
+  "green": "#43D15F",
+  "name": "EVA MAGI",
+  "purple": "#D06BFF",
+  "red": "#FF3B2E",
+  "selectionBackground": "#17402E",
+  "white": "#DDFDF1",
+  "yellow": "#FFB83D"
+}

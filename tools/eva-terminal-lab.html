@@ -602,24 +602,24 @@
               </div>
               <div class="field">
                 <label for="neutralTint">Neutral Tint</label>
-                <input id="neutralTint" type="text" value="#9aa6b8">
+                <input id="neutralTint" type="text" value="#a8e0ff">
               </div>
             </div>
             <div class="field">
               <div class="field-row"><label for="inkLuma">Ink Luma Threshold</label><span class="value" id="inkLumaValue"></span></div>
-              <input id="inkLuma" type="range" min="0" max="1" step="0.01" value="0.32">
+              <input id="inkLuma" type="range" min="0" max="1" step="0.01" value="0.27">
             </div>
             <div class="field">
               <div class="field-row"><label for="inkSaturationMax">Ink Saturation Max</label><span class="value" id="inkSaturationMaxValue"></span></div>
-              <input id="inkSaturationMax" type="range" min="0" max="1" step="0.01" value="0.31">
+              <input id="inkSaturationMax" type="range" min="0" max="1" step="0.01" value="0">
             </div>
             <div class="field">
               <div class="field-row"><label for="neutralSatMax">Neutral Saturation Max</label><span class="value" id="neutralSatMaxValue"></span></div>
-              <input id="neutralSatMax" type="range" min="0" max="1" step="0.01" value="0.18">
+              <input id="neutralSatMax" type="range" min="0" max="1" step="0.01" value="0.21">
             </div>
             <div class="field">
               <div class="field-row"><label for="neutralScale">Neutral Brightness</label><span class="value" id="neutralScaleValue"></span></div>
-              <input id="neutralScale" type="range" min="0" max="2" step="0.01" value="1.4">
+              <input id="neutralScale" type="range" min="0" max="3" step="0.01" value="2.4">
             </div>
           </div>
         </section>
@@ -627,17 +627,17 @@
         <section class="panel">
           <div class="panel-head">
             <span>Terminal</span>
-            <span class="value">preview only</span>
+            <span class="value">readable hlsl</span>
           </div>
           <div class="panel-body">
             <div class="mini-grid">
               <div class="field">
                 <label for="terminalBg">Background</label>
-                <input id="terminalBg" type="text" value="#160803">
+                <input id="terminalBg" type="text" value="#261303">
               </div>
               <div class="field">
                 <label for="washColor">Wash Color</label>
-                <input id="washColor" type="text" value="#ff8a1f">
+                <input id="washColor" type="text" value="#ff9e1b">
               </div>
             </div>
             <div class="field">
@@ -649,45 +649,45 @@
               <input id="cellAspect" type="range" min="0.5" max="3" step="0.01" value="1.72">
             </div>
             <div class="field">
-              <div class="field-row"><label for="crtExposure">CRT Exposure</label><span class="value" id="crtExposureValue"></span></div>
-              <input id="crtExposure" type="range" min="0" max="4" step="0.01" value="1.38">
+              <div class="field-row"><label for="crtExposure">CRT Brightness</label><span class="value" id="crtExposureValue"></span></div>
+              <input id="crtExposure" type="range" min="0" max="4" step="0.01" value="1.3">
             </div>
             <div class="field">
               <div class="field-row"><label for="crtSaturation">CRT Saturation</label><span class="value" id="crtSaturationValue"></span></div>
-              <input id="crtSaturation" type="range" min="0" max="5" step="0.01" value="1.28">
+              <input id="crtSaturation" type="range" min="0" max="5" step="0.01" value="1">
             </div>
             <div class="field">
               <div class="field-row"><label for="crtContrast">CRT Contrast</label><span class="value" id="crtContrastValue"></span></div>
-              <input id="crtContrast" type="range" min="0" max="5" step="0.01" value="1.32">
+              <input id="crtContrast" type="range" min="0" max="5" step="0.01" value="1">
             </div>
             <div class="field">
               <div class="field-row"><label for="crtGamma">CRT Gamma</label><span class="value" id="crtGammaValue"></span></div>
-              <input id="crtGamma" type="range" min="0.05" max="5" step="0.01" value="0.88">
+              <input id="crtGamma" type="range" min="0.05" max="5" step="0.01" value="1">
             </div>
             <div class="field">
               <div class="field-row"><label for="warmWash">Warm Wash</label><span class="value" id="warmWashValue"></span></div>
-              <input id="warmWash" type="range" min="0" max="1" step="0.01" value="0.16">
+              <input id="warmWash" type="range" min="0" max="1" step="0.01" value="0">
             </div>
             <div class="field">
               <div class="field-row"><label for="glowStrength">Glow Strength</label><span class="value" id="glowStrengthValue"></span></div>
-              <input id="glowStrength" type="range" min="0" max="4" step="0.01" value="0.66">
+              <input id="glowStrength" type="range" min="0" max="4" step="0.01" value="0.40">
             </div>
             <div class="field">
-              <div class="field-row"><label for="glowBlur">Glow Blur</label><span class="value" id="glowBlurValue"></span></div>
-              <input id="glowBlur" type="range" min="0" max="40" step="1" value="9">
+              <div class="field-row"><label for="glowBlur">Glow Sigma</label><span class="value" id="glowBlurValue"></span></div>
+              <input id="glowBlur" type="range" min="0" max="40" step="0.25" value="2">
             </div>
             <div class="field">
               <div class="field-row"><label for="scanOpacity">Scanline Opacity</label><span class="value" id="scanOpacityValue"></span></div>
-              <input id="scanOpacity" type="range" min="0" max="1" step="0.01" value="0.30">
+              <input id="scanOpacity" type="range" min="0" max="1" step="0.01" value="0.26">
             </div>
             <div class="mini-grid">
               <div class="field">
-                <div class="field-row"><label for="scanGap">Scan Gap</label><span class="value" id="scanGapValue"></span></div>
-                <input id="scanGap" type="range" min="1" max="18" step="1" value="4">
+                <div class="field-row"><label for="scanGap">Scan Period</label><span class="value" id="scanGapValue"></span></div>
+                <input id="scanGap" type="range" min="1" max="18" step="1" value="1">
               </div>
               <div class="field">
                 <div class="field-row"><label for="vignette">Vignette</label><span class="value" id="vignetteValue"></span></div>
-                <input id="vignette" type="range" min="0" max="1" step="0.01" value="0.28">
+                <input id="vignette" type="range" min="0" max="1" step="0.01" value="0.48">
               </div>
             </div>
           </div>
@@ -709,9 +709,9 @@
 
   <script>
     const samples = [
-      { id: "eva-00", name: "EVA-00", src: "eva-samples/eva-00.png", accent: "#4da3ff" },
-      { id: "eva-01", name: "EVA-01", src: "eva-samples/eva-01.png", accent: "#9a70ff" },
-      { id: "eva-02", name: "EVA-02", src: "eva-samples/eva-02.png", accent: "#ff503f" },
+      { id: "eva-00", name: "EVA-00", src: "eva-samples/eva-00.png", accent: "#4da3ff", whiteTint: "#9ad8ff", neutralShadow: "#80d2ff" },
+      { id: "eva-01", name: "EVA-01", src: "eva-samples/eva-01.png", accent: "#9a70ff", whiteTint: "#80b8ff", neutralShadow: "#6a9be8" },
+      { id: "eva-02", name: "EVA-02", src: "eva-samples/eva-02.png", accent: "#ff503f", whiteTint: "#ffc0a0", neutralShadow: "#ff9fb8" },
     ];
 
     const quadrantBits = [
@@ -787,6 +787,31 @@
       lastResults: new Map(),
     };
 
+    const readableShader = {
+      scanlineFactor: 0.26,
+      gaussianSigmaScale: 2.0,
+      glowStrength: 0.40,
+      grainIntensity: 0.012,
+      refreshLineStrength: 0.028,
+      curveIntensity: 0.55,
+      rgbShift: 0.42,
+      rgbAberrationStrength: 0.12,
+      fontColor: [1.000, 0.620, 0.105],
+      backgroundColor: [0.150, 0.075, 0.012],
+      chroma: 0.20,
+      colorPreserve: 0.65,
+      screenBrightness: 1.3,
+      blackFloor: [0.055, 0.038, 0.013],
+      dimTextLumaGate: 0.075,
+      dimTextLumaFloor: 0.28,
+      overscanPercentage: 0.018,
+      frameColor: [0.030, 0.026, 0.020],
+      bezelColor: [0.075, 0.060, 0.043],
+      frameHighlight: [0.24, 0.20, 0.15],
+      vignetteStrength: 0.48,
+      phosphorHotGlow: 0.18,
+    };
+
     function clamp(value, min, max) {
       return Math.max(min, Math.min(max, value));
     }
@@ -795,8 +820,40 @@
       return a + (b - a) * t;
     }
 
+    function lerpRgb(a, b, t) {
+      return a.map((channel, index) => lerp(channel, b[index], t));
+    }
+
+    function smoothstep(edge0, edge1, x) {
+      const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
+      return t * t * (3 - 2 * t);
+    }
+
     function luminance(rgb) {
       return (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
+    }
+
+    function unitRgb(rgb) {
+      return rgb.map((channel) => clamp(channel / 255, 0, 1));
+    }
+
+    function byteRgb(rgb) {
+      return rgb.map((channel) => clamp(Math.round(channel * 255), 0, 255));
+    }
+
+    function shaderLuma(rgb) {
+      return rgb[0] * 0.21 + rgb[1] * 0.72 + rgb[2] * 0.04;
+    }
+
+    function readableLuma(grey) {
+      const contentMask = smoothstep(readableShader.dimTextLumaGate, readableShader.dimTextLumaGate + 0.035, grey);
+      return grey + (Math.max(grey, readableShader.dimTextLumaFloor) - grey) * contentMask;
+    }
+
+    function shaderColorfulness(rgb) {
+      const hi = Math.max(rgb[0], rgb[1], rgb[2]);
+      const lo = Math.min(rgb[0], rgb[1], rgb[2]);
+      return (hi - lo) / Math.max(hi, 0.0001);
     }
 
     function rgbToHsv(rgb) {
@@ -1032,14 +1089,15 @@
     }
 
     function neutralColor(rgb, options) {
-      const tint = hexToRgb(options.neutralTint, [154, 166, 184]);
+      const coolWhite = hexToRgb(options.whiteTint || options.neutralTint, [168, 224, 255]);
+      const shadow = hexToRgb(options.neutralShadow || options.neutralTint, [128, 210, 255]);
       const lum = luminance(rgb);
-      const level = clamp((0.14 + lum * 0.72) * options.neutralScale, 0, 1);
-      return tint.map((channel) => Math.round(channel * level));
+      const lift = clamp((0.20 + lum * 0.80) * (options.neutralScale / 2.4), 0, 1);
+      return shadow.map((channel, index) => Math.round(lerp(channel, coolWhite[index], lift)));
     }
 
     function mapSourceColor(rgb, options) {
-      if (options.preserveWhite && isBlankWhite(rgb)) return [255, 255, 255];
+      if (options.preserveWhite && isBlankWhite(rgb)) return hexToRgb(options.whiteTint || options.neutralTint, [168, 224, 255]);
       if (isInk(rgb, options)) return hexToRgb(options.inkColor, [42, 48, 56]);
       if (isNeutral(rgb, options)) return neutralColor(rgb, options);
 
@@ -1059,15 +1117,48 @@
       return hsvToRgb(hsv);
     }
 
+    function convertToReadableAmber(sourceColor) {
+      const grey = shaderLuma(sourceColor);
+      const visibleGrey = readableLuma(grey);
+      const denom = Math.max(grey, 0.0001);
+      const chromaForeground = sourceColor.map((channel, index) => channel * readableShader.fontColor[index] / denom);
+      const foreground = lerpRgb(readableShader.fontColor, chromaForeground, readableShader.chroma);
+      return lerpRgb(readableShader.backgroundColor, foreground, clamp(visibleGrey, 0, 1));
+    }
+
+    function convertWithReadableChroma(sourceColor) {
+      const amber = convertToReadableAmber(sourceColor);
+      const luma = shaderLuma(sourceColor);
+      const colorful = shaderColorfulness(sourceColor);
+      const preserve = readableShader.colorPreserve
+        * smoothstep(0.12, 0.36, colorful)
+        * smoothstep(0.10, 0.35, luma);
+      const readableSource = sourceColor.map((channel, index) => Math.max(channel, readableShader.blackFloor[index]));
+      return lerpRgb(amber, readableSource, preserve);
+    }
+
     function terminalColor(rgb, options) {
-      const wash = hexToRgb(options.washColor, [255, 138, 31]);
-      let mixed = rgb.map((channel, index) => lerp(channel, wash[index], options.warmWash));
-      let hsv = rgbToHsv(mixed);
-      hsv[1] = clamp(hsv[1] * options.crtSaturation, 0, 1);
-      hsv[2] = clamp(hsv[2] * options.crtExposure, 0, 1);
-      hsv[2] = Math.pow(hsv[2], options.crtGamma);
-      mixed = hsvToRgb(hsv);
-      return mixed.map((channel) => clamp((channel - 128) * options.crtContrast + 128, 0, 255));
+      const brightness = Number.isFinite(options.crtExposure) ? options.crtExposure : readableShader.screenBrightness;
+      let mapped = convertWithReadableChroma(unitRgb(rgb)).map((channel, index) =>
+        Math.max(channel * brightness, readableShader.blackFloor[index])
+      );
+
+      const wash = unitRgb(hexToRgb(options.washColor, byteRgb(readableShader.fontColor)));
+      mapped = mapped.map((channel, index) => lerp(channel, wash[index], options.warmWash));
+
+      let adjusted = byteRgb(mapped);
+      if (options.crtSaturation !== 1 || options.crtGamma !== 1) {
+        const hsv = rgbToHsv(adjusted);
+        hsv[1] = clamp(hsv[1] * options.crtSaturation, 0, 1);
+        hsv[2] = Math.pow(clamp(hsv[2], 0, 1), options.crtGamma);
+        adjusted = hsvToRgb(hsv);
+      }
+
+      if (options.crtContrast !== 1) {
+        adjusted = adjusted.map((channel) => clamp((channel - 128) * options.crtContrast + 128, 0, 255));
+      }
+
+      return adjusted;
     }
 
     function activeAt(imageData, bgMask, x, y, options) {
@@ -1369,6 +1460,110 @@
       return { cells, richLines: richRows, activeCells, colorCount: colors.size, columns, rows, mode };
     }
 
+    function cssRgb(rgb) {
+      const channels = rgb.map((channel) => clamp(Math.round(channel), 0, 255));
+      return `rgb(${channels[0]}, ${channels[1]}, ${channels[2]})`;
+    }
+
+    function unitCssRgb(rgb) {
+      return cssRgb(byteRgb(rgb));
+    }
+
+    function readableHash(x, y, time) {
+      const value = Math.sin(x * 12.9898 + y * 78.233 + time * 31.17) * 43758.5453;
+      return value - Math.floor(value);
+    }
+
+    function addReadableShaderGrain(ctx, width, height) {
+      if (readableShader.grainIntensity <= 0) return;
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const { data } = imageData;
+      const time = ((window.performance && window.performance.now()) || Date.now()) / 1000;
+      for (let index = 0; index < data.length; index += 4) {
+        const pixel = index / 4;
+        const x = pixel % width;
+        const y = Math.floor(pixel / width);
+        const grain = (readableHash(x, y, time) - 0.5) * 255 * readableShader.grainIntensity;
+        data[index] = clamp(data[index] + grain, 0, 255);
+        data[index + 1] = clamp(data[index + 1] + grain, 0, 255);
+        data[index + 2] = clamp(data[index + 2] + grain, 0, 255);
+      }
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    function drawReadableShaderRefresh(ctx, width, height) {
+      if (readableShader.refreshLineStrength <= 0) return;
+      const time = ((window.performance && window.performance.now()) || Date.now()) / 1000;
+      const y = (time / 5 % 1) * height;
+      const band = Math.max(2, Math.round(height * 0.006));
+      const gradient = ctx.createLinearGradient(0, y - band, 0, y + band);
+      gradient.addColorStop(0, "rgba(255,255,255,0)");
+      gradient.addColorStop(0.5, `rgba(255,255,255,${readableShader.refreshLineStrength})`);
+      gradient.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, Math.max(0, y - band), width, band * 2);
+    }
+
+    function drawReadableShaderScanlines(ctx, width, height, options) {
+      if (options.scanOpacity <= 0) return;
+      const period = Math.max(1, Math.round(options.scanGap));
+      ctx.save();
+      ctx.fillStyle = `rgba(0,0,0,${clamp(options.scanOpacity, 0, 1)})`;
+      for (let y = 0; y < height; y += 1) {
+        if (Math.floor(y / period) % 2 === 1) {
+          ctx.fillRect(0, y, width, 1);
+        }
+      }
+      ctx.restore();
+    }
+
+    function drawReadableShaderFrame(ctx, width, height, options) {
+      const inset = Math.max(2, Math.round(Math.min(width, height) * readableShader.overscanPercentage));
+      const shadow = Math.max(12, Math.round(Math.min(width, height) * 0.075));
+
+      if (options.vignette > 0) {
+        const gradient = ctx.createRadialGradient(
+          width / 2,
+          height / 2,
+          Math.min(width, height) * 0.12,
+          width / 2,
+          height / 2,
+          Math.max(width, height) * 0.68
+        );
+        gradient.addColorStop(0, "rgba(0,0,0,0)");
+        gradient.addColorStop(1, `rgba(0,0,0,${clamp(options.vignette, 0, 1)})`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      const topShadow = ctx.createLinearGradient(0, 0, 0, shadow * 2.4);
+      topShadow.addColorStop(0, "rgba(0,0,0,0.20)");
+      topShadow.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = topShadow;
+      ctx.fillRect(0, 0, width, Math.min(height, shadow * 2.4));
+
+      const bottomShadow = ctx.createLinearGradient(0, height - shadow * 2.4, 0, height);
+      bottomShadow.addColorStop(0, "rgba(0,0,0,0)");
+      bottomShadow.addColorStop(1, "rgba(0,0,0,0.18)");
+      ctx.fillStyle = bottomShadow;
+      ctx.fillRect(0, Math.max(0, height - shadow * 2.4), width, Math.min(height, shadow * 2.4));
+
+      ctx.save();
+      ctx.lineWidth = Math.max(2, inset);
+      ctx.strokeStyle = unitCssRgb(readableShader.frameColor);
+      ctx.strokeRect(inset / 2, inset / 2, width - inset, height - inset);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = unitCssRgb(readableShader.bezelColor);
+      ctx.strokeRect(inset + 0.5, inset + 0.5, width - inset * 2 - 1, height - inset * 2 - 1);
+      ctx.strokeStyle = unitCssRgb(readableShader.frameHighlight);
+      ctx.globalAlpha = 0.08;
+      ctx.beginPath();
+      ctx.moveTo(inset, inset + 0.5);
+      ctx.lineTo(width - inset, inset + 0.5);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     function drawCells(canvas, result, options) {
       const mode = result.mode || options.renderMode;
       const cellW = options.cellScale;
@@ -1378,14 +1573,15 @@
       const height = result.rows * cellH + pad * 2;
       canvas.width = width;
       canvas.height = height;
-      canvas.style.setProperty("--terminal-bg", options.terminalBg);
+      const sourceBg = hexToRgb(options.terminalBg, byteRgb(readableShader.backgroundColor));
+      const bg = terminalColor(sourceBg, options);
+      canvas.style.setProperty("--terminal-bg", toHex(bg));
 
-      const bg = hexToRgb(options.terminalBg, [22, 8, 3]);
       const art = document.createElement("canvas");
       art.width = width;
       art.height = height;
       const artCtx = art.getContext("2d");
-      artCtx.fillStyle = `rgb(${bg[0]}, ${bg[1]}, ${bg[2]})`;
+      artCtx.fillStyle = cssRgb(bg);
       artCtx.fillRect(0, 0, width, height);
 
       for (let y = 0; y < result.rows; y += 1) {
@@ -1430,12 +1626,13 @@
 
       const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = `rgb(${bg[0]}, ${bg[1]}, ${bg[2]})`;
+      ctx.fillStyle = cssRgb(bg);
       ctx.fillRect(0, 0, width, height);
 
       if (options.glowStrength > 0 && options.glowBlur > 0) {
         ctx.save();
-        ctx.globalAlpha = clamp(options.glowStrength / 2, 0, 1);
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = clamp(options.glowStrength, 0, 1);
         ctx.filter = `blur(${options.glowBlur}px)`;
         ctx.drawImage(art, 0, 0);
         ctx.restore();
@@ -1443,23 +1640,20 @@
 
       ctx.drawImage(art, 0, 0);
 
-      if (options.scanOpacity > 0) {
+      if (readableShader.phosphorHotGlow > 0) {
         ctx.save();
-        ctx.globalAlpha = options.scanOpacity;
-        ctx.fillStyle = "rgba(0,0,0,1)";
-        for (let y = 0; y < height; y += options.scanGap) {
-          ctx.fillRect(0, y, width, 1);
-        }
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = clamp(readableShader.phosphorHotGlow, 0, 1);
+        ctx.filter = "blur(1px)";
+        ctx.drawImage(art, -2, 0);
+        ctx.drawImage(art, 2, 0);
         ctx.restore();
       }
 
-      if (options.vignette > 0) {
-        const gradient = ctx.createRadialGradient(width / 2, height / 2, Math.min(width, height) * 0.12, width / 2, height / 2, Math.max(width, height) * 0.68);
-        gradient.addColorStop(0, "rgba(0,0,0,0)");
-        gradient.addColorStop(1, `rgba(0,0,0,${options.vignette})`);
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, width, height);
-      }
+      drawReadableShaderRefresh(ctx, width, height);
+      addReadableShaderGrain(ctx, width, height);
+      drawReadableShaderScanlines(ctx, width, height, options);
+      drawReadableShaderFrame(ctx, width, height, options);
     }
 
     function readOptions() {
@@ -1521,16 +1715,21 @@
 
       state.images.forEach((item) => {
         if (!item.image.complete) return;
+        const itemOptions = {
+          ...options,
+          whiteTint: item.whiteTint || options.neutralTint,
+          neutralShadow: item.neutralShadow || options.neutralTint,
+        };
         let result;
         let pre = null;
         if (options.previewSource === "skin" && state.skins.has(item.id)) {
-          result = richToCells(state.skins.get(item.id).rich, options);
+          result = richToCells(state.skins.get(item.id).rich, itemOptions);
         } else {
-          pre = preprocess(item.image, options);
-          result = buildCells(pre, options);
+          pre = preprocess(item.image, itemOptions);
+          result = buildCells(pre, itemOptions);
         }
         state.lastResults.set(item.id, { pre, result });
-        drawCells(item.canvas, result, options);
+        drawCells(item.canvas, result, itemOptions);
         item.meta.textContent = `${result.columns}x${result.rows} / ${result.activeCells} cells`;
       });
 

@@ -8,12 +8,12 @@
 
 ## 包含内容
 
-- `skins/eva-00.yaml`、`skins/eva-01.yaml`、`skins/eva-02.yaml` - Hermes CLI 皮肤。
+- `skins/eva-00.yaml`、`skins/eva-01.yaml`、`skins/eva-02.yaml`、`skins/eva-magi.yaml` - Hermes CLI 皮肤。
 - `tools/braille-studio.html` - 用于图片转彩色 braille 的浏览器界面。
 - `fonts/ark-pixel-font-12px-monospaced-ttf-v2026.05.07/` - Windows Terminal profile 使用的 Ark Pixel 字体文件。
-- `shaders/cool-retro-frame-amber.hlsl` - Windows Terminal 琥珀色 CRT 像素着色器。
-- `windows-terminal/cool-retro-amber.scheme.jsonc` - Windows Terminal 配色片段。
-- `windows-terminal/cool-retro-frame-amber.profile.jsonc` - Windows Terminal profile 片段。
+- `shaders/cool-retro-frame-amber.hlsl`、`shaders/cool-retro-frame-magi.hlsl` - Windows Terminal CRT 像素着色器。
+- `windows-terminal/cool-retro-amber.scheme.jsonc`、`windows-terminal/eva-magi.scheme.jsonc` - Windows Terminal 配色片段。
+- `windows-terminal/cool-retro-frame-amber.profile.jsonc`、`windows-terminal/cool-retro-frame-magi.profile.jsonc` - Windows Terminal profile 片段。
 - `windows-terminal/keybindings.jsonc` - 可选的 shader/focus 快捷键片段。
 
 ## 环境要求

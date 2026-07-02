@@ -11,6 +11,7 @@ from image_to_rich_braille import (
     detect_background_rgb,
     preprocess_pixel_art_block_layer,
     render_pixel_art_quadrant_blocks,
+    set_pixel_art_tints,
     yaml_block,
 )
 
@@ -20,14 +21,20 @@ SOURCE_DIR = Path.home() / "Downloads" / "evafinalpixeljointprevia_heads"
 OUT_DIR = ROOT / "screenshots"
 WIDTH = 50
 ITEMS = [
-    ("eva-00", "01_unit-00_blue.png"),
-    ("eva-01", "02_unit-01_purple.png"),
-    ("eva-02", "03_unit-02_red.png"),
+    ("eva-00", "01_unit-00_blue.png", (154, 216, 255), (128, 210, 255)),
+    ("eva-01", "02_unit-01_purple.png", (128, 184, 255), (106, 155, 232)),
+    ("eva-02", "03_unit-02_red.png", (255, 192, 160), (255, 159, 184)),
 ]
 TAG_RE = re.compile(r"\[([^\]]+)\](.*?)\[/\]")
 
 
-def make_fragment(image_path: Path) -> str:
+def make_fragment(
+    image_path: Path,
+    *,
+    white_tint: tuple[int, int, int],
+    neutral_shadow: tuple[int, int, int],
+) -> str:
+    set_pixel_art_tints(white_tint=white_tint, neutral_shadow=neutral_shadow)
     source = Image.open(image_path).convert("RGBA")
     background = detect_background_rgb(source)
     processed = preprocess_pixel_art_block_layer(
@@ -153,8 +160,8 @@ def render_preview(fragments: list[tuple[str, str]]) -> Path:
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     fragments: list[tuple[str, str]] = []
-    for name, image_name in ITEMS:
-        rich = make_fragment(SOURCE_DIR / image_name)
+    for name, image_name, white_tint, neutral_shadow in ITEMS:
+        rich = make_fragment(SOURCE_DIR / image_name, white_tint=white_tint, neutral_shadow=neutral_shadow)
         fragments.append((name, rich))
         path = OUT_DIR / f"{name}-quadrant-block.yaml"
         path.write_text(yaml_block("banner_hero", rich) + "\n", encoding="utf-8", newline="\n")

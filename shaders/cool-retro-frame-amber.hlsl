@@ -31,6 +31,8 @@ cbuffer PixelShaderSettings
 #define CRT_CHROMA 0.20f
 #define CRT_SCREEN_BRIGHTNESS 1.3f
 #define CRT_BLACK_FLOOR float3(0.055f, 0.038f, 0.013f)
+#define CRT_DIM_TEXT_LUMA_GATE 0.075f
+#define CRT_DIM_TEXT_LUMA_FLOOR 0.28f
 #define OVERSCAN_PERCENTAGE 0.018f
 #define FRAME_COLOR float3(0.030f, 0.026f, 0.020f)
 #define BEZEL_COLOR float3(0.075f, 0.060f, 0.043f)
@@ -92,13 +94,21 @@ float Luma(float3 color)
     return dot(color, float3(0.21f, 0.72f, 0.04f));
 }
 
+float ReadableLuma(float grey)
+{
+    // Lift dim terminal glyphs while leaving the near-black screen background alone.
+    float contentMask = smoothstep(CRT_DIM_TEXT_LUMA_GATE, CRT_DIM_TEXT_LUMA_GATE + 0.035f, grey);
+    return lerp(grey, max(grey, CRT_DIM_TEXT_LUMA_FLOOR), contentMask);
+}
+
 float3 ConvertWithChroma(float3 sourceColor)
 {
     float grey = Luma(sourceColor);
+    float visibleGrey = ReadableLuma(grey);
     float denom = max(grey, 0.0001f);
     float3 chromaForeground = sourceColor * CRT_FONT_COLOR / denom;
     float3 foreground = lerp(CRT_FONT_COLOR, chromaForeground, CRT_CHROMA);
-    return lerp(CRT_BACKGROUND_COLOR, foreground, saturate(grey));
+    return lerp(CRT_BACKGROUND_COLOR, foreground, saturate(visibleGrey));
 }
 
 float2 PixelSnap(float2 uv)
