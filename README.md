@@ -2,7 +2,7 @@
 
 简体中文 | [English](docs/README_en.md)
 
-面向 Hermes Agent 的 EVA 风格皮肤合集，配套 Windows Terminal 琥珀色 CRT 配置和像素着色器。
+把你的 Hermes Agent 塞进 NERV 控制室：一组 EVA 风格皮肤，配套 Windows Terminal 的复古 CRT 配置。
 
 ## 皮肤预览
 
@@ -19,10 +19,13 @@
 | README / 长文本 | ![Amber HLSL README glow preview](assets/glow-amber.png) | ![Readable HLSL README glow preview](assets/glow-normal.png) |
 | NERV / 单色主题 | ![Amber HLSL NERV preview](assets/eva-nerv-amber.png) | ![Readable HLSL NERV preview](assets/eva-nerv.png) |
 
-- `cool-retro-frame-amber.hlsl`：更强的琥珀色统一映射、CRT 辉光和复古氛围，适合展示、录屏、截图、NERV 单色主题，以及想要整屏更像老式终端的时候。
-- `cool-retro-frame-readable.hlsl`：保留更多原始色相和高亮差异，适合长时间阅读 README、代码、日志、命令输出和多色 banner 调试。
+- `cool-retro-frame-amber.hlsl`（更风格化，终端大部分颜色会被映射为琥珀色）：更强的琥珀色统一映射、CRT 辉光和复古氛围，适合展示、录屏、截图、NERV 单色主题，以及想要整屏更像老式终端的时候。
+- `cool-retro-frame-readable.hlsl`（适合一般人的推荐配置，尽可能保留终端命令颜色）：保留更多原始色相和高亮差异，适合长时间阅读 README、代码、日志、命令输出和多色 banner 调试。
 
-本仓库只分发可复用的主题资产，不包含完整的本机 Windows Terminal `settings.json`，也不包含完整的 Hermes home 目录。那些文件通常会包含机器相关路径、profile ID、会话、缓存和认证信息。
+> **如果对终端的显示效果不满意需要微调**，可以把 HLSL 文件以及 [Hammster/windows-terminal-shaders](https://github.com/Hammster/windows-terminal-shaders) 扔给你的 agent 做参考，让它帮你修改。
+>
+> **如果想要自己定制 Hermes 主题中的更多内容**，比如配色、状态指示图标和文案，可以使用 [cocktailpeanut/hermes-mod](https://github.com/cocktailpeanut/hermes-mod) 可视化调整。生成配置之后，建议让 agent 帮你整合进仓库里的主题 YAML；不要直接使用 hermes-mod 生成的完整配置，因为它暂时只会生成单色的 Hermes Agent 启动窗口标题和 hero，无法实现这个仓库里的多彩效果。
+
 
 ## 包含内容
 
@@ -37,7 +40,7 @@
 
 ## 环境要求
 
-- Hermes Agent 0.16.0 或更新版本。
+- Hermes Agent。
 - 支持 `experimental.pixelShaderPath` 的 Windows Terminal。
 - 本地安装仓库内置的 Ark Pixel 字体。Windows Terminal profile 使用 `Ark Pixel 12px Mono zh_cn`、`Ark Pixel 12px Mono ja`、`Ark Pixel 12px Mono ko` 和 `Ark Pixel 12px Mono latin`。
 - 使用 UTF-8 编辑文件。不要把 YAML 保存为 ANSI/GBK。
@@ -76,11 +79,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps
 
 1. 重启 Windows Terminal。
 2. 在 Windows Terminal 的下拉菜单里打开 `Cool Retro Frame Amber` 或 `Cool Retro Frame Readable`。
-3. 启动 Hermes。如果脚本没有找到 `hermes` 命令，在 Hermes 里手动输入：
+
+![Open the new Windows Terminal profile](assets/new-window.png)
+
+3. 如果想让新标签页默认进入该配置，打开 `Settings` -> `Startup`，把 `Default profile` 改成 `Cool Retro Frame Amber` 或 `Cool Retro Frame Readable`，然后保存。
+
+![Set the new Windows Terminal profile as default](assets/set-default.png)
+
+4. 启动 Hermes。如果脚本没有找到 `hermes` 命令，在 Hermes 里手动输入：
 
 ```text
 /skin eva-02
 ```
+
+![Start Hermes with the installed Windows Terminal profile](assets/start-hermes.png)
 
 常用选项：
 
@@ -219,7 +231,11 @@ Copy-Item ".\shaders\cool-retro-frame-readable.hlsl" "$shaderDir\cool-retro-fram
 
 Amber profile 使用：
 
-Windows Terminal 图形界面里，PowerShell profile 的关键设置可以参考下面两张截图：字体、字号、配色、光标、透明度、内边距和滚动条需要与 JSON 片段保持一致。
+Windows Terminal 图形界面里，先进入目标 profile 的 `Additional settings`，点击 `Appearance`：
+
+![Windows Terminal Appearance settings location](assets/pw-setting-location.png)
+
+进入 `Appearance` 后，PowerShell profile 的关键设置可以参考下面两张截图：字体、字号、配色、光标、透明度、内边距和滚动条需要与 JSON 片段保持一致。
 
 | Text settings | Appearance settings |
 | --- | --- |
@@ -308,22 +324,6 @@ python .\scripts\image_to_rich_braille.py `
   --bg-tolerance 28 `
   --width 44
 ```
-
-## 使用浏览器 braille studio
-
-从仓库根目录启动静态服务器：
-
-```powershell
-python -m http.server 4173 --bind 127.0.0.1
-```
-
-打开：
-
-```text
-http://127.0.0.1:4173/tools/braille-studio.html
-```
-
-这个页面完全在本地浏览器运行。上传图片后，可以调节宽度、对比度、背景容差、空白截断、覆盖率、锐化、颜色策略和最低颜色亮度，然后复制或下载生成的 `banner_hero` YAML block。`Sample` 按钮会加载内置测试图，方便快速调参。
 
 ## HLSL 色彩映射逻辑
 
