@@ -4,6 +4,24 @@
 
 EVA-style skins for Hermes Agent, paired with a Windows Terminal amber CRT profile and pixel shader.
 
+## Skin previews
+
+| EVA-00 | EVA-01 |
+| --- | --- |
+| ![EVA-00 Hermes skin preview](../assets/eva-00.png) | ![EVA-01 Hermes skin preview](../assets/eva-01.png) |
+| EVA-02 | NERV Agent |
+| ![EVA-02 Hermes skin preview](../assets/eva-02.png) | ![NERV Agent Hermes skin preview](../assets/eva-nerv.png) |
+
+## HLSL effect comparison
+
+| Scenario | `cool-retro-frame-amber.hlsl` | `cool-retro-frame-readable.hlsl` |
+| --- | --- | --- |
+| README / long-form text | ![Amber HLSL README glow preview](../assets/glow-amber.png) | ![Readable HLSL README glow preview](../assets/glow-normal.png) |
+| NERV / monochrome theme | ![Amber HLSL NERV preview](../assets/eva-nerv-amber.png) | ![Readable HLSL NERV preview](../assets/eva-nerv.png) |
+
+- `cool-retro-frame-amber.hlsl`: stronger amber remapping, CRT glow, and retro atmosphere. Use it for showcases, recordings, screenshots, the NERV monochrome theme, or whenever you want the whole terminal to feel closer to an old amber display.
+- `cool-retro-frame-readable.hlsl`: preserves more of the original hue separation and highlight contrast. Use it for long README sessions, code, logs, command output, and multi-color banner tuning.
+
 This repo intentionally ships only reusable theme assets. It does not include a full local Windows Terminal `settings.json` or a full Hermes home directory, because those files often contain machine-specific paths, profile IDs, sessions, caches, and credentials.
 
 ## What is included
@@ -11,9 +29,9 @@ This repo intentionally ships only reusable theme assets. It does not include a 
 - `skins/eva-00.yaml`, `skins/eva-01.yaml`, `skins/eva-02.yaml`, `skins/eva-nerv.yaml` - Hermes CLI skins.
 - `tools/braille-studio.html` - browser UI for image-to-colored-braille conversion.
 - `fonts/ark-pixel-font-12px-monospaced-ttf-v2026.05.07/` - Ark Pixel font files used by the terminal profile.
-- `shaders/cool-retro-frame-amber.hlsl`, `shaders/cool-retro-frame-readable.hlsl`, `shaders/cool-retro-frame-magi.hlsl` - CRT pixel shaders for Windows Terminal.
-- `windows-terminal/cool-retro-amber.scheme.jsonc`, `windows-terminal/eva-magi.scheme.jsonc` - Windows Terminal color scheme snippets.
-- `windows-terminal/cool-retro-frame-amber.profile.jsonc`, `windows-terminal/cool-retro-frame-readable.profile.jsonc`, `windows-terminal/cool-retro-frame-magi.profile.jsonc` - Windows Terminal profile snippets.
+- `shaders/cool-retro-frame-amber.hlsl`, `shaders/cool-retro-frame-readable.hlsl` - CRT pixel shaders for Windows Terminal.
+- `windows-terminal/cool-retro-amber.scheme.jsonc` - Windows Terminal color scheme snippet.
+- `windows-terminal/cool-retro-frame-amber.profile.jsonc`, `windows-terminal/cool-retro-frame-readable.profile.jsonc` - Windows Terminal profile snippets.
 - `windows-terminal/keybindings.jsonc` - optional shader/focus toggle keybindings.
 - `scripts/install-windows.ps1` - current-user Windows installer for TTF fonts, Hermes YAML skins, HLSL shaders, and Windows Terminal profiles.
 
@@ -67,8 +85,8 @@ After installation:
 Common options:
 
 ```powershell
-# Install Amber, Readable, and MAGI Windows Terminal profiles
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Theme All
+# Install only the Amber Windows Terminal profile
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Theme Amber
 
 # Install only the readable Windows Terminal profile
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Theme Readable
@@ -200,6 +218,12 @@ Optional: add the entries from `windows-terminal/keybindings.jsonc` into the top
 This step creates two new Windows Terminal PowerShell profiles. `experimental.pixelShaderPath` points to the HLSL file for the CRT frame, scanlines, glow, and amber color remapping; `colorScheme` points to the palette; `commandline` points to Windows PowerShell. This configures Windows Terminal profiles, not the PowerShell `$PROFILE` startup script.
 
 The Amber profile uses:
+
+In the Windows Terminal GUI, use these screenshots as a reference for the PowerShell profile settings. Font face, font size, color scheme, cursor, opacity, padding, and scrollbar settings should match the JSON snippet.
+
+| Text settings | Appearance settings |
+| --- | --- |
+| ![Windows Terminal PowerShell text settings](../assets/pw-setting-ref1.png) | ![Windows Terminal PowerShell appearance settings](../assets/pw-setting-ref2.png) |
 
 ```jsonc
 {
@@ -365,5 +389,6 @@ This project is inspired by and intended to work well with:
 
 - [cocktailpeanut/hermes-mod](https://github.com/cocktailpeanut/hermes-mod) - Hermes skin management and visual editing workflow.
 - [Hammster/windows-terminal-shaders](https://github.com/Hammster/windows-terminal-shaders) - Windows Terminal shader effects used to achieve the retro CRT look.
+- [Cronos - "The EVA'S - Neon Genesis Evangelion."](https://pixeljoint.com/pixelart/151379.htm) - pixel-art reference for the EVA unit side portraits.
 
 See `THIRD_PARTY_NOTICES.md` for shader attribution notes.

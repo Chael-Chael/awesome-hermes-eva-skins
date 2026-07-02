@@ -6,7 +6,7 @@ Install the EVA Hermes skins and Windows Terminal CRT profile for the current Wi
 powershell -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1
 
 .EXAMPLE
-powershell -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Theme All -Skin eva-01
+powershell -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Theme Readable -Skin eva-01
 
 .EXAMPLE
 powershell -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -DryRun
@@ -14,8 +14,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -DryRun
 
 [CmdletBinding()]
 param(
-    [ValidateSet("AmberReadable", "Amber", "Readable", "Magi", "All")]
-    [string]$Theme = "AmberReadable",
+    [ValidateSet("Both", "Amber", "Readable")]
+    [string]$Theme = "Both",
 
     [string]$Skin = "eva-02",
 
@@ -446,23 +446,11 @@ function Get-ThemeSpecs {
             ProfileFile = "cool-retro-frame-readable.profile.jsonc"
             ProfileName = "Cool Retro Frame Readable"
             ShaderFile = "cool-retro-frame-readable.hlsl"
-        },
-        @{
-            Name = "Magi"
-            SchemeFile = "eva-magi.scheme.jsonc"
-            SchemeName = "EVA MAGI"
-            ProfileFile = "cool-retro-frame-magi.profile.jsonc"
-            ProfileName = "EVA MAGI Frame"
-            ShaderFile = "cool-retro-frame-magi.hlsl"
         }
     )
 
-    if ($SelectedTheme -eq "All") {
+    if ($SelectedTheme -eq "Both") {
         return $all
-    }
-
-    if ($SelectedTheme -eq "AmberReadable") {
-        return @($all | Where-Object { ($_.Name -eq "Amber") -or ($_.Name -eq "Readable") })
     }
 
     return @($all | Where-Object { $_.Name -eq $SelectedTheme })
@@ -584,4 +572,10 @@ if ($SkipWindowsTerminal) {
     Install-WindowsTerminalProfile -RepoRoot $repoRoot -SelectedTheme $Theme
 }
 
-Write-Step "Done. Restart Windows Terminal, then open the installed profile. Default profiles: Cool Retro Frame Amber and Cool Retro Frame Readable."
+$installedProfiles = switch ($Theme) {
+    "Amber" { "Cool Retro Frame Amber" }
+    "Readable" { "Cool Retro Frame Readable" }
+    default { "Cool Retro Frame Amber and Cool Retro Frame Readable" }
+}
+
+Write-Step "Done. Restart Windows Terminal, then open the installed profile(s): $installedProfiles."

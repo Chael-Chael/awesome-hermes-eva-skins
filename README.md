@@ -4,6 +4,24 @@
 
 面向 Hermes Agent 的 EVA 风格皮肤合集，配套 Windows Terminal 琥珀色 CRT 配置和像素着色器。
 
+## 皮肤预览
+
+| EVA-00 | EVA-01 |
+| --- | --- |
+| ![EVA-00 Hermes skin preview](assets/eva-00.png) | ![EVA-01 Hermes skin preview](assets/eva-01.png) |
+| EVA-02 | NERV Agent |
+| ![EVA-02 Hermes skin preview](assets/eva-02.png) | ![NERV Agent Hermes skin preview](assets/eva-nerv.png) |
+
+## HLSL 效果对比
+
+| 场景 | `cool-retro-frame-amber.hlsl` | `cool-retro-frame-readable.hlsl` |
+| --- | --- | --- |
+| README / 长文本 | ![Amber HLSL README glow preview](assets/glow-amber.png) | ![Readable HLSL README glow preview](assets/glow-normal.png) |
+| NERV / 单色主题 | ![Amber HLSL NERV preview](assets/eva-nerv-amber.png) | ![Readable HLSL NERV preview](assets/eva-nerv.png) |
+
+- `cool-retro-frame-amber.hlsl`：更强的琥珀色统一映射、CRT 辉光和复古氛围，适合展示、录屏、截图、NERV 单色主题，以及想要整屏更像老式终端的时候。
+- `cool-retro-frame-readable.hlsl`：保留更多原始色相和高亮差异，适合长时间阅读 README、代码、日志、命令输出和多色 banner 调试。
+
 本仓库只分发可复用的主题资产，不包含完整的本机 Windows Terminal `settings.json`，也不包含完整的 Hermes home 目录。那些文件通常会包含机器相关路径、profile ID、会话、缓存和认证信息。
 
 ## 包含内容
@@ -11,9 +29,9 @@
 - `skins/eva-00.yaml`、`skins/eva-01.yaml`、`skins/eva-02.yaml`、`skins/eva-nerv.yaml` - Hermes CLI 皮肤。
 - `tools/braille-studio.html` - 用于图片转彩色 braille 的浏览器界面。
 - `fonts/ark-pixel-font-12px-monospaced-ttf-v2026.05.07/` - Windows Terminal profile 使用的 Ark Pixel 字体文件。
-- `shaders/cool-retro-frame-amber.hlsl`、`shaders/cool-retro-frame-readable.hlsl`、`shaders/cool-retro-frame-magi.hlsl` - Windows Terminal CRT 像素着色器。
-- `windows-terminal/cool-retro-amber.scheme.jsonc`、`windows-terminal/eva-magi.scheme.jsonc` - Windows Terminal 配色片段。
-- `windows-terminal/cool-retro-frame-amber.profile.jsonc`、`windows-terminal/cool-retro-frame-readable.profile.jsonc`、`windows-terminal/cool-retro-frame-magi.profile.jsonc` - Windows Terminal profile 片段。
+- `shaders/cool-retro-frame-amber.hlsl`、`shaders/cool-retro-frame-readable.hlsl` - Windows Terminal CRT 像素着色器。
+- `windows-terminal/cool-retro-amber.scheme.jsonc` - Windows Terminal 配色片段。
+- `windows-terminal/cool-retro-frame-amber.profile.jsonc`、`windows-terminal/cool-retro-frame-readable.profile.jsonc` - Windows Terminal profile 片段。
 - `windows-terminal/keybindings.jsonc` - 可选的 shader/focus 快捷键片段。
 - `scripts/install-windows.ps1` - Windows 当前用户一键安装脚本，自动安装 TTF、Hermes YAML、HLSL 和 Windows Terminal profile。
 
@@ -67,8 +85,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps
 常用选项：
 
 ```powershell
-# 同时安装 Amber、Readable 和 MAGI 三套 Windows Terminal profile
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Theme All
+# 只安装琥珀版 Windows Terminal profile
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Theme Amber
 
 # 只安装可读版 Windows Terminal profile
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Theme Readable
@@ -200,6 +218,12 @@ Copy-Item ".\shaders\cool-retro-frame-readable.hlsl" "$shaderDir\cool-retro-fram
 这一步的作用：创建两个新的 Windows Terminal PowerShell profile。`experimental.pixelShaderPath` 指向 HLSL 文件，负责 CRT 外框、扫描线、辉光和琥珀色映射；`colorScheme` 指向配色；`commandline` 指向 Windows PowerShell。这里配置的是 Windows Terminal 的 profile，不是 PowerShell 的 `$PROFILE` 启动脚本。
 
 Amber profile 使用：
+
+Windows Terminal 图形界面里，PowerShell profile 的关键设置可以参考下面两张截图：字体、字号、配色、光标、透明度、内边距和滚动条需要与 JSON 片段保持一致。
+
+| Text settings | Appearance settings |
+| --- | --- |
+| ![Windows Terminal PowerShell text settings](assets/pw-setting-ref1.png) | ![Windows Terminal PowerShell appearance settings](assets/pw-setting-ref2.png) |
 
 ```jsonc
 {
@@ -355,5 +379,6 @@ float3 foreground = lerp(CRT_FONT_COLOR, chromaForeground, CRT_CHROMA);
 
 - [cocktailpeanut/hermes-mod](https://github.com/cocktailpeanut/hermes-mod) - Hermes 皮肤管理和视觉编辑工作流。
 - [Hammster/windows-terminal-shaders](https://github.com/Hammster/windows-terminal-shaders) - 用于实现复古 CRT 视觉的 Windows Terminal shader 效果。
+- [Cronos - "The EVA'S - Neon Genesis Evangelion."](https://pixeljoint.com/pixelart/151379.htm) - EVA 机体侧脸像素画参考。
 
 shader 归属说明见 `THIRD_PARTY_NOTICES.md`。
