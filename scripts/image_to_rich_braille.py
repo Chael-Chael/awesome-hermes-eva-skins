@@ -28,6 +28,60 @@ BRAILLE_BIT_GRID = (
     (0x04, 0x20),
     (0x40, 0x80),
 )
+QUADRANT_CHARS = {
+    0b0000: " ",
+    0b0001: "▘",
+    0b0010: "▝",
+    0b0011: "▀",
+    0b0100: "▖",
+    0b0101: "▌",
+    0b0110: "▞",
+    0b0111: "▛",
+    0b1000: "▗",
+    0b1001: "▚",
+    0b1010: "▐",
+    0b1011: "▜",
+    0b1100: "▄",
+    0b1101: "▙",
+    0b1110: "▟",
+    0b1111: "█",
+}
+QUADRANT_BRAILLE_CHARS = {
+    0b0000: BRAILLE_BLANK,
+    0b0001: chr(0x2800 + 0x01),
+    0b0010: chr(0x2800 + 0x08),
+    0b0011: chr(0x2800 + 0x01 + 0x08),
+    0b0100: chr(0x2800 + 0x40),
+    0b0101: chr(0x2800 + 0x01 + 0x40),
+    0b0110: chr(0x2800 + 0x08 + 0x40),
+    0b0111: chr(0x2800 + 0x01 + 0x08 + 0x40),
+    0b1000: chr(0x2800 + 0x80),
+    0b1001: chr(0x2800 + 0x01 + 0x80),
+    0b1010: chr(0x2800 + 0x08 + 0x80),
+    0b1011: chr(0x2800 + 0x01 + 0x08 + 0x80),
+    0b1100: chr(0x2800 + 0x40 + 0x80),
+    0b1101: chr(0x2800 + 0x01 + 0x40 + 0x80),
+    0b1110: chr(0x2800 + 0x08 + 0x40 + 0x80),
+    0b1111: chr(0x2800 + 0x01 + 0x08 + 0x40 + 0x80),
+}
+QUADRANT_TEXTURE_CHARS = {
+    0b0000: BRAILLE_BLANK,
+    0b0001: "⠂",
+    0b0010: "⠂",
+    0b0011: "⠆",
+    0b0100: "⠂",
+    0b0101: "⠆",
+    0b0110: "⠆",
+    0b0111: "⠇",
+    0b1000: "⠂",
+    0b1001: "⠆",
+    0b1010: "⠆",
+    0b1011: "⠇",
+    0b1100: "⠆",
+    0b1101: "⠇",
+    0b1110: "⠇",
+    0b1111: "⣿",
+}
 HERMESMOD_SHARPEN_KERNEL = ImageFilter.Kernel(
     (3, 3),
     (0, -1, 0, -1, 5, -1, 0, -1, 0),
@@ -84,6 +138,11 @@ def saturation(rgb: Sequence[int]) -> float:
     r, g, b = (channel / 255.0 for channel in rgb[:3])
     _, s, _ = colorsys.rgb_to_hsv(r, g, b)
     return s
+
+
+def chroma(rgb: Sequence[int]) -> float:
+    values = [int(channel) for channel in rgb[:3]]
+    return (max(values) - min(values)) / 255.0
 
 
 def has_transparency(image: Image.Image, alpha_threshold: int) -> bool:
@@ -281,6 +340,18 @@ def resize_for_braille(
     return image.resize((pixel_width, pixel_height), resample)
 
 
+def resize_for_quadrant_blocks(
+    image: Image.Image,
+    width: int,
+    *,
+    resample: Image.Resampling = Image.Resampling.NEAREST,
+) -> Image.Image:
+    output_height = max(1, round((image.height / max(1, image.width)) * width * 0.5))
+    pixel_width = max(1, width * 2)
+    pixel_height = max(1, output_height * 2)
+    return image.resize((pixel_width, pixel_height), resample)
+
+
 def crop_to_background_content(
     image: Image.Image,
     *,
@@ -406,6 +477,40 @@ def preprocess_pixel_art_layer(
     return image
 
 
+def preprocess_pixel_art_block_layer(
+    source: Image.Image,
+    *,
+    width: int,
+    background_rgb: tuple[int, int, int] | None,
+    background_tolerance: float,
+    alpha_threshold: int,
+    autocrop: bool,
+    palette_size: int | None,
+) -> Image.Image:
+    image = source.convert("RGBA")
+    if autocrop:
+        image = crop_to_background_content(
+            image,
+            background_rgb=background_rgb,
+            background_tolerance=background_tolerance,
+            alpha_threshold=alpha_threshold,
+            padding=1,
+        )
+
+    image = resize_for_quadrant_blocks(image, width, resample=Image.Resampling.NEAREST)
+
+    if palette_size and palette_size > 0:
+        alpha = image.getchannel("A")
+        quantized = image.convert("RGB").quantize(
+            colors=max(2, palette_size),
+            method=Image.Quantize.MEDIANCUT,
+        )
+        image = quantized.convert("RGBA")
+        image.putalpha(alpha)
+
+    return image
+
+
 def average_color(samples: Iterable[PixelSample], fallback: tuple[int, int, int]) -> tuple[int, int, int]:
     weighted = []
     for sample in samples:
@@ -447,6 +552,58 @@ def terminal_visible_color(rgb: Sequence[int]) -> tuple[int, int, int]:
     return tuple(round(channel + (255 - channel) * blend) for channel in visible)  # type: ignore[return-value]
 
 
+def pixel_art_visible_color(rgb: Sequence[int]) -> tuple[int, int, int]:
+    """Map colored pixel art with the current EVA terminal-lab source settings."""
+    if is_pixel_art_blank_white(rgb):
+        return (255, 255, 255)
+    r, g, b = (channel / 255.0 for channel in rgb[:3])
+    h, s, v = colorsys.rgb_to_hsv(r, g, b)
+    if is_pixel_art_neutral(rgb):
+        return pixel_art_neutral_color(rgb)
+
+    # Mirrors tools/eva-terminal-lab.html with:
+    # satGain=2.15, satFloor=.72, valueMin=.51, valueMax=1,
+    # valueGamma=1.24, sourceContrast=1.51, sourceExposure=-.13,
+    # shadowCrush=.14, hueShift=1.
+    h = (h + 1.0 / 360.0) % 1.0
+    s = clamp(max(s, 0.72) * 2.15, 0.0, 1.0)
+    v = clamp((v - 0.5) * 2.51 + 0.5 - 0.13, 0.0, 1.0)
+    v = v**1.24
+    v = 0.51 + v * (1.0 - 0.51)
+    if v < 0.52:
+        v *= 1.0 - 0.14 * (1.0 - v / 0.52)
+    v = clamp(v, 0.0, 1.0)
+    rr, gg, bb = colorsys.hsv_to_rgb(h, s, v)
+    return (round(rr * 255), round(gg * 255), round(bb * 255))
+
+
+def pixel_art_neutral_color(rgb: Sequence[int]) -> tuple[int, int, int]:
+    """Keep white armor and gray shading distinct instead of collapsing them."""
+    tint = (154, 166, 184)
+    lum = luminance(rgb)
+    level = clamp((0.14 + lum * 0.72) * 1.4, 0.0, 1.0)
+    return tuple(round(channel * level) for channel in tint)  # type: ignore[return-value]
+
+
+def is_pixel_art_neutral(rgb: Sequence[int]) -> bool:
+    if is_pixel_art_blank_white(rgb):
+        return False
+    sat = saturation(rgb)
+    lum = luminance(rgb)
+    chr_value = chroma(rgb)
+    r, g, b = (channel / 255.0 for channel in rgb[:3])
+    hue, _, _ = colorsys.rgb_to_hsv(r, g, b)
+    if sat <= 0.18:
+        return True
+    if chr_value <= 0.16 and lum >= 0.16:
+        return True
+    return chr_value <= 0.20 and sat <= 0.42 and 0.50 <= hue <= 0.76 and lum >= 0.18
+
+
+def theme_aligned_pixel_color(rgb: Sequence[int]) -> tuple[int, int, int]:
+    return tuple(int(channel) for channel in rgb[:3])  # type: ignore[return-value]
+
+
 def is_uncolored_white_or_gray(rgb: Sequence[int]) -> bool:
     lum = luminance(rgb)
     sat = saturation(rgb)
@@ -455,6 +612,31 @@ def is_uncolored_white_or_gray(rgb: Sequence[int]) -> bool:
 
 def is_pixel_art_blank_white(rgb: Sequence[int]) -> bool:
     return luminance(rgb) > 0.80 and saturation(rgb) < 0.22
+
+
+def is_pixel_art_ink(rgb: Sequence[int]) -> bool:
+    if is_pixel_art_blank_white(rgb):
+        return False
+    lum = luminance(rgb)
+    sat = saturation(rgb)
+    max_channel = max(int(channel) for channel in rgb[:3]) / 255.0
+    return max_channel < 0.16 or (lum <= 0.32 and sat <= 0.31)
+
+
+def has_pixel_art_fill(rgb: Sequence[int]) -> bool:
+    return not is_pixel_art_blank_white(rgb) and not is_pixel_art_ink(rgb) and not is_pixel_art_neutral(rgb)
+
+
+def should_force_ink_color(outline_samples: int, active_pixels: int, active_samples: Sequence[PixelSample]) -> bool:
+    if outline_samples <= 0:
+        return False
+
+    colored_samples = sum(1 for sample in active_samples if has_pixel_art_fill(sample.rgb))
+    if colored_samples == 0:
+        return True
+
+    outline_ratio = outline_samples / max(1, active_pixels)
+    return outline_samples >= 3 or (outline_samples >= 2 and outline_ratio >= 0.6)
 
 
 def bright_local_color(
@@ -511,21 +693,35 @@ def bright_local_color(
 def pixel_art_cell_color(
     active_samples: Sequence[PixelSample],
     fallback_color: tuple[int, int, int],
+    ink_color: tuple[int, int, int],
+    neutral_color: tuple[int, int, int],
 ) -> tuple[int, int, int] | None:
     colored: list[tuple[tuple[int, int, int], float]] = []
+    neutral: list[tuple[tuple[int, int, int], float]] = []
+    has_ink = False
+
     for sample in active_samples:
         rgb = sample.rgb
         lum = luminance(rgb)
         sat = saturation(rgb)
-        if lum < 0.06:
+        if is_pixel_art_blank_white(rgb):
             continue
-        if is_uncolored_white_or_gray(rgb):
+        if is_pixel_art_ink(rgb):
+            has_ink = True
+            continue
+        if is_pixel_art_neutral(rgb):
+            if lum < 0.78:
+                neutral.append((rgb, 0.35 + (1.0 - abs(lum - 0.45))))
             continue
         weight = (sat ** 1.25) * (0.35 + lum)
         if weight > 0:
             colored.append((rgb, weight))
 
     if not colored:
+        if has_ink:
+            return ink_color
+        if neutral:
+            return neutral_color
         return None
 
     total = sum(weight for _, weight in colored)
@@ -536,8 +732,62 @@ def pixel_art_cell_color(
 
     rgb = tuple(channels)  # type: ignore[assignment]
     if is_uncolored_white_or_gray(rgb):
+        if has_ink:
+            return ink_color
+        if neutral:
+            return neutral_color
         return None
-    return terminal_visible_color(rgb or fallback_color)
+    return pixel_art_visible_color(rgb or fallback_color)
+
+
+def build_pixel_art_masks(
+    image: Image.Image,
+    *,
+    background_rgb: tuple[int, int, int] | None,
+    background_tolerance: float,
+    alpha_threshold: int,
+    outline_radius: int,
+) -> tuple[list[list[bool]], list[list[bool]]]:
+    rgba = image.convert("RGBA")
+    width, height = rgba.size
+    pixels = rgba.load()
+    foreground = [[False for _ in range(width)] for _ in range(height)]
+    outline_seed = [[False for _ in range(width)] for _ in range(height)]
+
+    for y in range(height):
+        for x in range(width):
+            sample = sample_pixel(
+                pixels[x, y],
+                mask_mode="background",
+                background_rgb=background_rgb,
+                background_tolerance=background_tolerance,
+                alpha_threshold=alpha_threshold,
+                luma_threshold=0.5,
+            )
+            active = sample.foreground >= 0.5 and not is_pixel_art_blank_white(sample.rgb)
+            foreground[y][x] = active
+            if active and is_pixel_art_ink(sample.rgb):
+                outline_seed[y][x] = True
+
+    outline = [[False for _ in range(width)] for _ in range(height)]
+    radius = max(0, outline_radius)
+    if radius == 0:
+        return foreground, outline_seed
+
+    for y in range(height):
+        for x in range(width):
+            if not outline_seed[y][x]:
+                continue
+            for oy in range(-radius, radius + 1):
+                for ox in range(-radius, radius + 1):
+                    if abs(ox) + abs(oy) > radius:
+                        continue
+                    tx = x + ox
+                    ty = y + oy
+                    if 0 <= tx < width and 0 <= ty < height:
+                        outline[ty][tx] = True
+
+    return foreground, outline
 
 
 def render_pixel_art_braille(
@@ -547,11 +797,21 @@ def render_pixel_art_braille(
     background_tolerance: float,
     alpha_threshold: int,
     min_cell_coverage: float,
+    outline_radius: int,
+    ink_color: tuple[int, int, int],
+    neutral_color: tuple[int, int, int],
     fallback_color: tuple[int, int, int],
     bold: bool,
 ) -> str:
     rgba = image.convert("RGBA")
     pixels = rgba.load()
+    foreground_mask, outline_mask = build_pixel_art_masks(
+        rgba,
+        background_rgb=background_rgb,
+        background_tolerance=background_tolerance,
+        alpha_threshold=alpha_threshold,
+        outline_radius=outline_radius,
+    )
     lines: list[str] = []
 
     for y in range(0, rgba.height, 4):
@@ -559,7 +819,9 @@ def render_pixel_art_braille(
         for x in range(0, rgba.width, 2):
             bits = 0
             samples = 0
+            active_pixels = 0
             active_samples: list[PixelSample] = []
+            outline_samples = 0
 
             for dy in range(4):
                 for dx in range(2):
@@ -568,25 +830,318 @@ def render_pixel_art_braille(
                     if sample_x >= rgba.width or sample_y >= rgba.height:
                         continue
                     samples += 1
-                    sample = sample_pixel(
-                        pixels[sample_x, sample_y],
-                        mask_mode="background",
-                        background_rgb=background_rgb,
-                        background_tolerance=background_tolerance,
-                        alpha_threshold=alpha_threshold,
-                        luma_threshold=0.5,
-                    )
-                    if sample.foreground >= 0.5 and not is_pixel_art_blank_white(sample.rgb):
+                    is_foreground = foreground_mask[sample_y][sample_x]
+                    is_outline = outline_mask[sample_y][sample_x]
+                    if is_foreground or is_outline:
+                        active_pixels += 1
                         bits |= BRAILLE_BIT_GRID[dy][dx]
-                        active_samples.append(sample)
+                        if is_outline:
+                            outline_samples += 1
+                        if is_foreground:
+                            sample = sample_pixel(
+                                pixels[sample_x, sample_y],
+                                mask_mode="background",
+                                background_rgb=background_rgb,
+                                background_tolerance=background_tolerance,
+                                alpha_threshold=alpha_threshold,
+                                luma_threshold=0.5,
+                            )
+                            active_samples.append(sample)
 
-            if not bits or len(active_samples) / max(1, samples) < min_cell_coverage:
+            if not bits or active_pixels / max(1, samples) < min_cell_coverage:
                 cells.append((BRAILLE_BLANK, None))
                 continue
 
-            rgb = pixel_art_cell_color(active_samples, fallback_color)
-            color = to_hex(rgb) if rgb is not None else None
+            if should_force_ink_color(outline_samples, active_pixels, active_samples):
+                rgb = ink_color
+            else:
+                rgb = pixel_art_cell_color(active_samples, fallback_color, ink_color, neutral_color)
+            if rgb is None:
+                color = None
+            else:
+                color = to_hex(rgb)
             cells.append((chr(0x2800 + bits), color))
+
+        while cells and cells[-1] == (BRAILLE_BLANK, None):
+            cells.pop()
+        lines.append(markup_cells(cells, bold=bold))
+
+    return trim_blank_lines("\n".join(lines))
+
+
+def render_pixel_art_quadrant_blocks(
+    image: Image.Image,
+    *,
+    background_rgb: tuple[int, int, int] | None,
+    background_tolerance: float,
+    alpha_threshold: int,
+    min_cell_coverage: float,
+    ink_color: tuple[int, int, int],
+    neutral_color: tuple[int, int, int],
+    fallback_color: tuple[int, int, int],
+    blank_white: bool = True,
+    bold: bool,
+) -> str:
+    rgba = image.convert("RGBA")
+    pixels = rgba.load()
+    lines: list[str] = []
+
+    for y in range(0, rgba.height, 2):
+        cells: list[tuple[str, str | None, str | None]] = []
+        for x in range(0, rgba.width, 2):
+            samples: list[PixelSample | None] = []
+            bits = 0
+
+            for index, (dx, dy) in enumerate(((0, 0), (1, 0), (0, 1), (1, 1))):
+                sample_x = x + dx
+                sample_y = y + dy
+                if sample_x >= rgba.width or sample_y >= rgba.height:
+                    samples.append(None)
+                    continue
+                sample = sample_pixel(
+                    pixels[sample_x, sample_y],
+                    mask_mode="background",
+                    background_rgb=background_rgb,
+                    background_tolerance=background_tolerance,
+                    alpha_threshold=alpha_threshold,
+                    luma_threshold=0.5,
+                )
+                active = sample.foreground >= 0.5 and not (blank_white and is_pixel_art_blank_white(sample.rgb))
+                if active:
+                    bits |= 1 << index
+                    samples.append(sample)
+                else:
+                    samples.append(None)
+
+            active_samples = [sample for sample in samples if sample is not None]
+            if not bits or len(active_samples) / 4 < min_cell_coverage:
+                cells.append((" ", None, None))
+                continue
+
+            colors: list[tuple[int, int, int] | None] = []
+            for sample in samples:
+                if sample is None:
+                    colors.append(None)
+                elif is_pixel_art_ink(sample.rgb):
+                    colors.append(ink_color)
+                elif is_pixel_art_neutral(sample.rgb):
+                    colors.append(pixel_art_neutral_color(sample.rgb))
+                else:
+                    colors.append(pixel_art_visible_color(sample.rgb or fallback_color))
+
+            active_colors = [color for color in colors if color is not None]
+            if not active_colors:
+                cells.append((" ", None, None))
+                continue
+
+            top = [colors[0], colors[1]]
+            bottom = [colors[2], colors[3]]
+            left = [colors[0], colors[2]]
+            right = [colors[1], colors[3]]
+
+            def mean_color(values: Sequence[tuple[int, int, int] | None]) -> tuple[int, int, int] | None:
+                present = [value for value in values if value is not None]
+                if not present:
+                    return None
+                return tuple(round(sum(value[channel] for value in present) / len(present)) for channel in range(3))
+
+            fg: tuple[int, int, int] | None
+            bg: tuple[int, int, int] | None = None
+            char = QUADRANT_CHARS[bits]
+
+            if bits == 0b1111:
+                top_color = mean_color(top)
+                bottom_color = mean_color(bottom)
+                left_color = mean_color(left)
+                right_color = mean_color(right)
+                top_bottom_distance = color_distance(top_color, bottom_color) if top_color and bottom_color else 0
+                left_right_distance = color_distance(left_color, right_color) if left_color and right_color else 0
+                if top_color and bottom_color and top_bottom_distance >= max(24, left_right_distance):
+                    char = "▀"
+                    fg = theme_aligned_pixel_color(top_color)
+                    bg = theme_aligned_pixel_color(bottom_color)
+                elif left_color and right_color and left_right_distance >= 24:
+                    char = "▌"
+                    fg = theme_aligned_pixel_color(left_color)
+                    bg = theme_aligned_pixel_color(right_color)
+                else:
+                    mixed = mean_color(active_colors)
+                    fg = theme_aligned_pixel_color(mixed) if mixed else None
+            else:
+                mixed = mean_color(active_colors)
+                fg = theme_aligned_pixel_color(mixed) if mixed else None
+
+            cells.append((char, to_hex(fg) if fg else None, to_hex(bg) if bg else None))
+
+        while cells and cells[-1] == (" ", None, None):
+            cells.pop()
+        lines.append(markup_block_cells(cells, bold=bold))
+
+    return trim_blank_lines("\n".join(lines))
+
+
+def render_pixel_art_full_blocks(
+    image: Image.Image,
+    *,
+    background_rgb: tuple[int, int, int] | None,
+    background_tolerance: float,
+    alpha_threshold: int,
+    min_cell_coverage: float,
+    ink_color: tuple[int, int, int],
+    neutral_color: tuple[int, int, int],
+    fallback_color: tuple[int, int, int],
+    blank_white: bool = True,
+    bold: bool,
+) -> str:
+    rgba = image.convert("RGBA")
+    pixels = rgba.load()
+    lines: list[str] = []
+
+    for y in range(rgba.height):
+        cells: list[tuple[str, str | None]] = []
+        for x in range(rgba.width):
+            sample = sample_pixel(
+                pixels[x, y],
+                mask_mode="background",
+                background_rgb=background_rgb,
+                background_tolerance=background_tolerance,
+                alpha_threshold=alpha_threshold,
+                luma_threshold=0.5,
+            )
+            active = sample.foreground >= 0.5 and not (blank_white and is_pixel_art_blank_white(sample.rgb))
+            if not active or min_cell_coverage > 1.0:
+                cells.append((" ", None))
+                continue
+
+            if is_pixel_art_ink(sample.rgb):
+                rgb = ink_color
+            elif is_pixel_art_neutral(sample.rgb):
+                rgb = pixel_art_neutral_color(sample.rgb)
+            else:
+                rgb = pixel_art_visible_color(sample.rgb or fallback_color)
+            cells.append(("█", to_hex(rgb)))
+
+        while cells and cells[-1] == (" ", None):
+            cells.pop()
+        lines.append(markup_cells(cells, bold=bold))
+
+    return trim_blank_lines("\n".join(lines))
+
+
+def render_pixel_art_dotted_quadrants(
+    image: Image.Image,
+    *,
+    background_rgb: tuple[int, int, int] | None,
+    background_tolerance: float,
+    alpha_threshold: int,
+    min_cell_coverage: float,
+    ink_color: tuple[int, int, int],
+    neutral_color: tuple[int, int, int],
+    fallback_color: tuple[int, int, int],
+    bold: bool,
+) -> str:
+    rgba = image.convert("RGBA")
+    pixels = rgba.load()
+    lines: list[str] = []
+
+    for y in range(0, rgba.height, 2):
+        cells: list[tuple[str, str | None]] = []
+        for x in range(0, rgba.width, 2):
+            samples: list[PixelSample] = []
+            bits = 0
+            outline_samples = 0
+
+            for index, (dx, dy) in enumerate(((0, 0), (1, 0), (0, 1), (1, 1))):
+                sample_x = x + dx
+                sample_y = y + dy
+                if sample_x >= rgba.width or sample_y >= rgba.height:
+                    continue
+                sample = sample_pixel(
+                    pixels[sample_x, sample_y],
+                    mask_mode="background",
+                    background_rgb=background_rgb,
+                    background_tolerance=background_tolerance,
+                    alpha_threshold=alpha_threshold,
+                    luma_threshold=0.5,
+                )
+                active = sample.foreground >= 0.5 and not is_pixel_art_blank_white(sample.rgb)
+                if not active:
+                    continue
+                bits |= 1 << index
+                samples.append(sample)
+                if is_pixel_art_ink(sample.rgb):
+                    outline_samples += 1
+
+            if not bits or len(samples) / 4 < min_cell_coverage:
+                cells.append((BRAILLE_BLANK, None))
+                continue
+
+            if should_force_ink_color(outline_samples, len(samples), samples):
+                rgb = ink_color
+            else:
+                rgb = pixel_art_cell_color(samples, fallback_color, ink_color, neutral_color)
+            cells.append((QUADRANT_BRAILLE_CHARS[bits], to_hex(rgb) if rgb else None))
+
+        while cells and cells[-1] == (BRAILLE_BLANK, None):
+            cells.pop()
+        lines.append(markup_cells(cells, bold=bold))
+
+    return trim_blank_lines("\n".join(lines))
+
+
+def render_pixel_art_textured_quadrants(
+    image: Image.Image,
+    *,
+    background_rgb: tuple[int, int, int] | None,
+    background_tolerance: float,
+    alpha_threshold: int,
+    min_cell_coverage: float,
+    ink_color: tuple[int, int, int],
+    neutral_color: tuple[int, int, int],
+    fallback_color: tuple[int, int, int],
+    bold: bool,
+) -> str:
+    rgba = image.convert("RGBA")
+    pixels = rgba.load()
+    lines: list[str] = []
+
+    for y in range(0, rgba.height, 2):
+        cells: list[tuple[str, str | None]] = []
+        for x in range(0, rgba.width, 2):
+            samples: list[PixelSample] = []
+            bits = 0
+            outline_samples = 0
+
+            for index, (dx, dy) in enumerate(((0, 0), (1, 0), (0, 1), (1, 1))):
+                sample_x = x + dx
+                sample_y = y + dy
+                if sample_x >= rgba.width or sample_y >= rgba.height:
+                    continue
+                sample = sample_pixel(
+                    pixels[sample_x, sample_y],
+                    mask_mode="background",
+                    background_rgb=background_rgb,
+                    background_tolerance=background_tolerance,
+                    alpha_threshold=alpha_threshold,
+                    luma_threshold=0.5,
+                )
+                active = sample.foreground >= 0.5 and not is_pixel_art_blank_white(sample.rgb)
+                if not active:
+                    continue
+                bits |= 1 << index
+                samples.append(sample)
+                if is_pixel_art_ink(sample.rgb):
+                    outline_samples += 1
+
+            if not bits or len(samples) / 4 < min_cell_coverage:
+                cells.append((BRAILLE_BLANK, None))
+                continue
+
+            if should_force_ink_color(outline_samples, len(samples), samples):
+                rgb = ink_color
+            else:
+                rgb = pixel_art_cell_color(samples, fallback_color, ink_color, neutral_color)
+            cells.append((QUADRANT_TEXTURE_CHARS[bits], to_hex(rgb) if rgb else None))
 
         while cells and cells[-1] == (BRAILLE_BLANK, None):
             cells.pop()
@@ -832,6 +1387,42 @@ def markup_cells(cells: Sequence[tuple[str, str | None]], *, bold: bool) -> str:
     return "".join(parts)
 
 
+def markup_block_cells(cells: Sequence[tuple[str, str | None, str | None]], *, bold: bool) -> str:
+    parts: list[str] = []
+    active_fg: str | None = None
+    active_bg: str | None = None
+    active_text: list[str] = []
+
+    def flush() -> None:
+        nonlocal active_fg, active_bg, active_text
+        if not active_text:
+            return
+        text = "".join(active_text)
+        if active_fg or active_bg:
+            prefix = "bold " if bold else ""
+            if active_fg and active_bg:
+                style = f"{prefix}{active_fg} on {active_bg}"
+            elif active_fg:
+                style = f"{prefix}{active_fg}"
+            else:
+                style = f"{prefix}on {active_bg}"
+            parts.append(f"[{style}]{text}[/]")
+        else:
+            parts.append(text)
+        active_fg = None
+        active_bg = None
+        active_text = []
+
+    for char, fg, bg in cells:
+        if fg != active_fg or bg != active_bg:
+            flush()
+            active_fg = fg
+            active_bg = bg
+        active_text.append(char)
+    flush()
+    return "".join(parts)
+
+
 def trim_blank_lines(text: str) -> str:
     lines = [line.rstrip() for line in text.splitlines()]
     while lines and not strip_markup(lines[0]).strip(BRAILLE_BLANK + " "):
@@ -850,7 +1441,7 @@ def yaml_block(key: str, value: str, indent: int = 2) -> str:
     if not value:
         return f"{key}: \"\""
     lines = value.splitlines()
-    return f"{key}: |-\n" + "\n".join(f"{pad}{line}" for line in lines)
+    return f"{key}: |{indent}-\n" + "\n".join(f"{pad}{line}" for line in lines)
 
 
 def choose_frame(image: Image.Image, frame: int) -> Image.Image:
@@ -897,6 +1488,24 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--alpha-threshold", type=int, default=12, help="Pixels below this alpha are transparent")
     parser.add_argument("--luma-threshold", type=float, default=0.5, help="Darkness threshold for luma mask mode")
     parser.add_argument("--min-cell-coverage", type=float, default=0.05, help="Drop very sparse braille cells")
+    parser.add_argument(
+        "--outline-radius",
+        type=int,
+        default=0,
+        help="Pixel-art mode only: dilate detected outlines by this many source pixels.",
+    )
+    parser.add_argument(
+        "--ink-color",
+        type=parse_hex_color,
+        default=parse_hex_color("#2a3038"),
+        help="Pixel-art mode only: visible color used for dark ink/outline cells.",
+    )
+    parser.add_argument(
+        "--neutral-color",
+        type=parse_hex_color,
+        default=parse_hex_color("#8f98a8"),
+        help="Pixel-art mode only: visible color used for gray non-color detail cells.",
+    )
     parser.add_argument("--no-autocrop", action="store_true", help="Disable automatic crop to foreground")
     parser.add_argument("--no-sharpen", action="store_true", help="Disable sharpening")
     parser.add_argument("--contrast", type=float, default=0.18, help="Contrast boost; 0 disables it")
@@ -928,6 +1537,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise SystemExit("--width must be positive")
     if args.palette_size < 0:
         raise SystemExit("--palette-size must be 0 or positive")
+    if args.outline_radius < 0:
+        raise SystemExit("--outline-radius must be 0 or positive")
 
     source = Image.open(args.image)
     source = choose_frame(source, args.frame)
@@ -980,6 +1591,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             background_tolerance=args.bg_tolerance,
             alpha_threshold=args.alpha_threshold,
             min_cell_coverage=args.min_cell_coverage,
+            outline_radius=args.outline_radius,
+            ink_color=args.ink_color,
+            neutral_color=args.neutral_color,
             fallback_color=args.fallback_color,
             bold=args.bold,
         )

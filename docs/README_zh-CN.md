@@ -1,6 +1,6 @@
 # awesome-hermes-eva-skins
 
-[English](../README.md) | 简体中文
+[English](README_en.md) | 简体中文
 
 面向 Hermes Agent 的 EVA 风格皮肤合集，配套 Windows Terminal 琥珀色 CRT 配置和像素着色器。
 
@@ -221,6 +221,47 @@ Copy-Item ".\shaders\cool-retro-frame-amber.hlsl" "$shaderDir\cool-retro-frame-a
   "useAcrylic": false
 }
 ```
+
+## HLSL 色彩映射逻辑
+
+`shaders/cool-retro-frame-amber.hlsl` 不直接保留 Windows Terminal 的原始 RGB 颜色，而是先把终端画面重映射到一套琥珀色 CRT 调色逻辑里。
+
+核心函数是 `ConvertWithChroma(sourceColor.rgb)`：
+
+1. 先用 `Luma()` 计算输入颜色亮度：
+
+```hlsl
+dot(color, float3(0.21f, 0.72f, 0.04f))
+```
+
+这里绿色权重最高，所以终端原图里越亮、越偏绿色感知亮度越高的像素，会被视为更接近“发光文字”。
+
+2. 用亮度把画面拆成“背景”和“前景”两端：
+
+```hlsl
+return lerp(CRT_BACKGROUND_COLOR, foreground, saturate(grey));
+```
+
+暗像素靠近 `CRT_BACKGROUND_COLOR`，亮像素靠近 `foreground`。当前背景是偏深棕橙的 `float3(0.150f, 0.075f, 0.012f)`，默认文字磷光色是 `CRT_FONT_COLOR = float3(1.000f, 0.620f, 0.105f)`。
+
+3. `foreground` 不是纯固定琥珀色，而是混入少量原始色相：
+
+```hlsl
+float3 chromaForeground = sourceColor * CRT_FONT_COLOR / denom;
+float3 foreground = lerp(CRT_FONT_COLOR, chromaForeground, CRT_CHROMA);
+```
+
+`CRT_CHROMA` 当前是 `0.20f`，意思是大约 80% 走统一琥珀色，20% 保留原始颜色的相对差异。这样普通文本会保持复古琥珀主色，但彩色 banner、语法高亮或 UI 色块仍会带一点原始色彩层次。
+
+主流程里还会对映射后的颜色继续加工：
+
+- `CRT_SCREEN_BRIGHTNESS` 把整体亮度提高到 `1.3f`。
+- `CRT_BLACK_FLOOR` 给暗部设置最低黑位，避免完全死黑。
+- `Blur()` 采样周围像素后再次走 `ConvertWithChroma()`，叠加成文字辉光。
+- 径向采样红蓝边缘亮度差，叠加一点 `RGB_ABERRATION_STRENGTH`，制造轻微色散。
+- 最后再加扫描线、噪点、刷新线、曲面暗角和外框。
+
+所以当前 shader 的颜色策略可以概括为：用原始画面的亮度决定“背景到琥珀前景”的位置，用 `CRT_CHROMA` 少量保留原始色相，再通过辉光、黑位、色散和扫描线把结果压成 CRT 琥珀屏风格。
 
 ## 故障排查
 

@@ -1,0 +1,1735 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EVA Terminal Preview Lab</title>
+  <style>
+    @font-face {
+      font-family: "Ark Pixel";
+      src: url("../fonts/ark-pixel-font-12px-monospaced-ttf-v2026.05.07/ark-pixel-12px-monospaced-latin.ttf") format("truetype");
+      font-display: swap;
+    }
+
+    :root {
+      color-scheme: dark;
+      --bg: #08090b;
+      --panel: #101217;
+      --panel-2: #151821;
+      --line: #2c3240;
+      --line-soft: #1c222d;
+      --text: #eef3ff;
+      --muted: #98a4b7;
+      --faint: #606b7d;
+      --purple: #9a70ff;
+      --green: #87ff4e;
+      --amber: #ffaf36;
+      --red: #ff503f;
+      --terminal-bg: #120704;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(154, 112, 255, .10), transparent 260px),
+        radial-gradient(circle at 78% 10%, rgba(135, 255, 78, .07), transparent 330px),
+        var(--bg);
+      color: var(--text);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(8, 9, 11, .88);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 38px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #6f4de0;
+      background: #17101f;
+      color: var(--green);
+      font-family: "Ark Pixel", ui-monospace, monospace;
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+      font-weight: 750;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 11px;
+      color: var(--text);
+      background: #171b24;
+      border: 1px solid #343b49;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .button:hover {
+      border-color: var(--purple);
+      color: #fff;
+    }
+
+    .button.primary {
+      border-color: #6f4de0;
+      background: #25193b;
+    }
+
+    .button.file {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .button.file input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    main {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 410px;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .stage {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      gap: 12px;
+    }
+
+    .sample-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      height: 34px;
+      padding: 0 12px;
+      border: 1px solid #333a48;
+      background: #11151d;
+      color: var(--muted);
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      color: #fff;
+      border-color: var(--green);
+      background: #172018;
+      box-shadow: inset 0 -2px 0 var(--green);
+    }
+
+    .preview-grid {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(260px, 1fr));
+      gap: 12px;
+      align-content: start;
+    }
+
+    .terminal-card {
+      min-width: 0;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      display: grid;
+      grid-template-rows: 40px auto;
+      box-shadow: 0 22px 55px rgba(0, 0, 0, .32);
+    }
+
+    .card-head {
+      height: 40px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border-bottom: 1px solid var(--line-soft);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .terminal-shell {
+      padding: 12px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.035), transparent 120px),
+        #050609;
+      overflow: auto;
+    }
+
+    canvas.terminal {
+      display: block;
+      width: 100%;
+      max-height: 68vh;
+      background: var(--terminal-bg);
+      border: 1px solid #20150f;
+      image-rendering: pixelated;
+    }
+
+    .inspector {
+      min-width: 0;
+      display: grid;
+      align-content: start;
+      gap: 12px;
+    }
+
+    .panel {
+      background: rgba(16, 18, 23, .96);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, .24);
+    }
+
+    .panel-head {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--line-soft);
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+    }
+
+    .panel-body {
+      padding: 12px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    label,
+    .field-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .value {
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--purple);
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      color: var(--text);
+      background: #080b11;
+      border: 1px solid #2d3442;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    input[type="text"],
+    select {
+      height: 34px;
+      padding: 0 9px;
+      font-size: 12px;
+    }
+
+    textarea {
+      min-height: 112px;
+      resize: vertical;
+      padding: 10px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 2px rgba(154, 112, 255, .18);
+    }
+
+    .switch {
+      min-height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .switch input {
+      width: 42px;
+      height: 22px;
+      appearance: none;
+      border: 1px solid #3a4352;
+      background: #070a0f;
+      border-radius: 999px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .switch input::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--faint);
+      transition: transform .14s ease, background .14s ease;
+    }
+
+    .switch input:checked {
+      border-color: var(--green);
+    }
+
+    .switch input:checked::after {
+      transform: translateX(20px);
+      background: var(--green);
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .metric-box {
+      min-width: 0;
+      padding: 9px 10px;
+      border: 1px solid var(--line-soft);
+      background: #0b0e14;
+    }
+
+    .metric-box span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .metric-box strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 1220px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      canvas.terminal {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      main {
+        padding: 10px;
+      }
+
+      .metric-row,
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="mark">EVA</div>
+        <div>
+          <h1>EVA Terminal Preview Lab</h1>
+          <div class="subtle">Source color mapping plus terminal CRT simulation.</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button id="resetBtn" class="button" type="button">Reset</button>
+        <button id="copyConfigBtn" class="button" type="button">Copy Config</button>
+        <button id="copyRichBtn" class="button primary" type="button">Copy Active Rich</button>
+        <label class="button file">
+          Upload
+          <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+        </label>
+      </div>
+    </header>
+
+    <main>
+      <section class="stage">
+        <div class="sample-tabs" id="sampleTabs"></div>
+
+        <section class="preview-grid" id="previewGrid"></section>
+
+        <section class="metric-row">
+          <div class="metric-box"><span>Active</span><strong id="activeName">EVA-01</strong></div>
+          <div class="metric-box"><span>Grid</span><strong id="gridMetric">0 x 0</strong></div>
+          <div class="metric-box"><span>Cells</span><strong id="cellMetric">0</strong></div>
+          <div class="metric-box"><span>Colors</span><strong id="colorMetric">0</strong></div>
+        </section>
+      </section>
+
+      <aside class="inspector">
+        <section class="panel">
+          <div class="panel-head">
+            <span>Conversion</span>
+            <span class="value">source to cells</span>
+          </div>
+          <div class="panel-body">
+            <div class="field">
+              <label for="previewSource">Preview Input</label>
+              <select id="previewSource">
+                <option value="skin">Current Skin YAML</option>
+                <option value="source" selected>Source Image Conversion</option>
+              </select>
+            </div>
+            <label class="switch">
+              <span class="field-label">Auto Refresh Skin</span>
+              <input id="autoRefreshSkin" type="checkbox" checked>
+            </label>
+            <div class="field">
+              <div class="field-row"><label for="skinPollMs">Refresh Interval</label><span class="value" id="skinPollMsValue"></span></div>
+              <input id="skinPollMs" type="range" min="250" max="5000" step="250" value="1000">
+            </div>
+            <div class="field">
+              <label for="renderMode">Render Mode</label>
+              <select id="renderMode">
+                <option value="quadrant" selected>Quadrant block 2x2</option>
+                <option value="braille">Braille dots 2x4</option>
+                <option value="pixel">Pixel matrix</option>
+              </select>
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="width">Width</label><span class="value" id="widthValue"></span></div>
+              <input id="width" type="range" min="8" max="220" step="1" value="50">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="bgTolerance">Background Tolerance</label><span class="value" id="bgToleranceValue"></span></div>
+              <input id="bgTolerance" type="range" min="0" max="220" step="1" value="37">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="coverage">Min Cell Coverage</label><span class="value" id="coverageValue"></span></div>
+              <input id="coverage" type="range" min="0" max="1" step="0.01" value="0">
+            </div>
+            <div class="mini-grid">
+              <label class="switch"><span class="field-label">Flood Background</span><input id="floodBg" type="checkbox" checked></label>
+              <label class="switch"><span class="field-label">Preserve White Armor</span><input id="preserveWhite" type="checkbox" checked></label>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <span>Source Color</span>
+            <span class="value">pre-terminal YAML</span>
+          </div>
+          <div class="panel-body">
+            <div class="field">
+              <div class="field-row"><label for="satGain">Saturation Gain</label><span class="value" id="satGainValue"></span></div>
+              <input id="satGain" type="range" min="0" max="5" step="0.01" value="2.15">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="satFloor">Saturation Floor</label><span class="value" id="satFloorValue"></span></div>
+              <input id="satFloor" type="range" min="0" max="1" step="0.01" value="0.72">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="valueMin">Value Min</label><span class="value" id="valueMinValue"></span></div>
+              <input id="valueMin" type="range" min="0" max="1" step="0.01" value="0.51">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="valueMax">Value Max</label><span class="value" id="valueMaxValue"></span></div>
+              <input id="valueMax" type="range" min="0" max="1" step="0.01" value="1">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="valueGamma">Value Gamma</label><span class="value" id="valueGammaValue"></span></div>
+              <input id="valueGamma" type="range" min="0.05" max="5" step="0.01" value="1.24">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="sourceContrast">Source Contrast</label><span class="value" id="sourceContrastValue"></span></div>
+              <input id="sourceContrast" type="range" min="-1" max="4" step="0.01" value="1.51">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="sourceExposure">Source Exposure</label><span class="value" id="sourceExposureValue"></span></div>
+              <input id="sourceExposure" type="range" min="-2" max="2" step="0.01" value="-0.13">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="shadowCrush">Shadow Crush</label><span class="value" id="shadowCrushValue"></span></div>
+              <input id="shadowCrush" type="range" min="0" max="1" step="0.01" value="0.14">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="hueShift">Hue Shift</label><span class="value" id="hueShiftValue"></span></div>
+              <input id="hueShift" type="range" min="-180" max="180" step="1" value="1">
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <span>Ink And Neutral</span>
+            <span class="value">outline / gray</span>
+          </div>
+          <div class="panel-body">
+            <div class="mini-grid">
+              <div class="field">
+                <label for="inkColor">Ink Color</label>
+                <input id="inkColor" type="text" value="#001006">
+              </div>
+              <div class="field">
+                <label for="neutralTint">Neutral Tint</label>
+                <input id="neutralTint" type="text" value="#9aa6b8">
+              </div>
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="inkLuma">Ink Luma Threshold</label><span class="value" id="inkLumaValue"></span></div>
+              <input id="inkLuma" type="range" min="0" max="1" step="0.01" value="0.32">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="inkSaturationMax">Ink Saturation Max</label><span class="value" id="inkSaturationMaxValue"></span></div>
+              <input id="inkSaturationMax" type="range" min="0" max="1" step="0.01" value="0.31">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="neutralSatMax">Neutral Saturation Max</label><span class="value" id="neutralSatMaxValue"></span></div>
+              <input id="neutralSatMax" type="range" min="0" max="1" step="0.01" value="0.18">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="neutralScale">Neutral Brightness</label><span class="value" id="neutralScaleValue"></span></div>
+              <input id="neutralScale" type="range" min="0" max="2" step="0.01" value="1.4">
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <span>Terminal</span>
+            <span class="value">preview only</span>
+          </div>
+          <div class="panel-body">
+            <div class="mini-grid">
+              <div class="field">
+                <label for="terminalBg">Background</label>
+                <input id="terminalBg" type="text" value="#160803">
+              </div>
+              <div class="field">
+                <label for="washColor">Wash Color</label>
+                <input id="washColor" type="text" value="#ff8a1f">
+              </div>
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="cellScale">Cell Scale</label><span class="value" id="cellScaleValue"></span></div>
+              <input id="cellScale" type="range" min="2" max="34" step="1" value="13">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="cellAspect">Cell Aspect</label><span class="value" id="cellAspectValue"></span></div>
+              <input id="cellAspect" type="range" min="0.5" max="3" step="0.01" value="1.72">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="crtExposure">CRT Exposure</label><span class="value" id="crtExposureValue"></span></div>
+              <input id="crtExposure" type="range" min="0" max="4" step="0.01" value="1.38">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="crtSaturation">CRT Saturation</label><span class="value" id="crtSaturationValue"></span></div>
+              <input id="crtSaturation" type="range" min="0" max="5" step="0.01" value="1.28">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="crtContrast">CRT Contrast</label><span class="value" id="crtContrastValue"></span></div>
+              <input id="crtContrast" type="range" min="0" max="5" step="0.01" value="1.32">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="crtGamma">CRT Gamma</label><span class="value" id="crtGammaValue"></span></div>
+              <input id="crtGamma" type="range" min="0.05" max="5" step="0.01" value="0.88">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="warmWash">Warm Wash</label><span class="value" id="warmWashValue"></span></div>
+              <input id="warmWash" type="range" min="0" max="1" step="0.01" value="0.16">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="glowStrength">Glow Strength</label><span class="value" id="glowStrengthValue"></span></div>
+              <input id="glowStrength" type="range" min="0" max="4" step="0.01" value="0.66">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="glowBlur">Glow Blur</label><span class="value" id="glowBlurValue"></span></div>
+              <input id="glowBlur" type="range" min="0" max="40" step="1" value="9">
+            </div>
+            <div class="field">
+              <div class="field-row"><label for="scanOpacity">Scanline Opacity</label><span class="value" id="scanOpacityValue"></span></div>
+              <input id="scanOpacity" type="range" min="0" max="1" step="0.01" value="0.30">
+            </div>
+            <div class="mini-grid">
+              <div class="field">
+                <div class="field-row"><label for="scanGap">Scan Gap</label><span class="value" id="scanGapValue"></span></div>
+                <input id="scanGap" type="range" min="1" max="18" step="1" value="4">
+              </div>
+              <div class="field">
+                <div class="field-row"><label for="vignette">Vignette</label><span class="value" id="vignetteValue"></span></div>
+                <input id="vignette" type="range" min="0" max="1" step="0.01" value="0.28">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <span>Active Rich</span>
+            <span class="value" id="richMetric">0 chars</span>
+          </div>
+          <div class="panel-body">
+            <textarea id="richOutput" spellcheck="false" readonly></textarea>
+            <div class="hint">Current Skin YAML mode previews the exact skin hero plus terminal layer. Source color controls apply only in Source Image Conversion mode.</div>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const samples = [
+      { id: "eva-00", name: "EVA-00", src: "eva-samples/eva-00.png", accent: "#4da3ff" },
+      { id: "eva-01", name: "EVA-01", src: "eva-samples/eva-01.png", accent: "#9a70ff" },
+      { id: "eva-02", name: "EVA-02", src: "eva-samples/eva-02.png", accent: "#ff503f" },
+    ];
+
+    const quadrantBits = [
+      [1, 2],
+      [4, 8],
+    ];
+
+    const brailleBits = [
+      [0x01, 0x08],
+      [0x02, 0x10],
+      [0x04, 0x20],
+      [0x40, 0x80],
+    ];
+
+    const quadrantChars = {
+      0: " ",
+      1: "▘",
+      2: "▝",
+      3: "▀",
+      4: "▖",
+      5: "▌",
+      6: "▞",
+      7: "▛",
+      8: "▗",
+      9: "▚",
+      10: "▐",
+      11: "▜",
+      12: "▄",
+      13: "▙",
+      14: "▟",
+      15: "█",
+    };
+    const quadrantCharBits = Object.fromEntries(Object.entries(quadrantChars).map(([bits, char]) => [char, Number(bits)]));
+
+    const defaults = {};
+    const ids = [
+      "previewSource", "autoRefreshSkin", "skinPollMs", "renderMode", "width", "bgTolerance", "coverage", "floodBg", "preserveWhite",
+      "satGain", "satFloor", "valueMin", "valueMax", "valueGamma", "sourceContrast",
+      "sourceExposure", "shadowCrush", "hueShift", "inkColor", "neutralTint", "inkLuma",
+      "inkSaturationMax", "neutralSatMax", "neutralScale", "terminalBg", "washColor",
+      "cellScale", "cellAspect", "crtExposure", "crtSaturation", "crtContrast", "crtGamma",
+      "warmWash", "glowStrength", "glowBlur", "scanOpacity", "scanGap", "vignette",
+    ];
+
+    const els = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
+    Object.assign(els, {
+      sampleTabs: document.getElementById("sampleTabs"),
+      previewGrid: document.getElementById("previewGrid"),
+      activeName: document.getElementById("activeName"),
+      gridMetric: document.getElementById("gridMetric"),
+      cellMetric: document.getElementById("cellMetric"),
+      colorMetric: document.getElementById("colorMetric"),
+      richMetric: document.getElementById("richMetric"),
+      richOutput: document.getElementById("richOutput"),
+      resetBtn: document.getElementById("resetBtn"),
+      copyConfigBtn: document.getElementById("copyConfigBtn"),
+      copyRichBtn: document.getElementById("copyRichBtn"),
+      fileInput: document.getElementById("fileInput"),
+    });
+
+    ids.forEach((id) => {
+      const el = els[id];
+      defaults[id] = el.type === "checkbox" ? el.checked : el.value;
+    });
+
+    const state = {
+      images: [],
+      skins: new Map(),
+      activeId: "eva-01",
+      renderTimer: 0,
+      skinPollTimer: 0,
+      lastRich: "",
+      lastResults: new Map(),
+    };
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function luminance(rgb) {
+      return (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
+    }
+
+    function rgbToHsv(rgb) {
+      const r = rgb[0] / 255;
+      const g = rgb[1] / 255;
+      const b = rgb[2] / 255;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const delta = max - min;
+      let h = 0;
+      if (delta) {
+        if (max === r) h = ((g - b) / delta) % 6;
+        else if (max === g) h = (b - r) / delta + 2;
+        else h = (r - g) / delta + 4;
+        h /= 6;
+        if (h < 0) h += 1;
+      }
+      return [h, max === 0 ? 0 : delta / max, max];
+    }
+
+    function hsvToRgb(hsv) {
+      const h = ((hsv[0] % 1) + 1) % 1;
+      const s = clamp(hsv[1], 0, 1);
+      const v = clamp(hsv[2], 0, 1);
+      const i = Math.floor(h * 6);
+      const f = h * 6 - i;
+      const p = v * (1 - s);
+      const q = v * (1 - f * s);
+      const t = v * (1 - (1 - f) * s);
+      const mod = i % 6;
+      const rgb = mod === 0 ? [v, t, p]
+        : mod === 1 ? [q, v, p]
+        : mod === 2 ? [p, v, t]
+        : mod === 3 ? [p, q, v]
+        : mod === 4 ? [t, p, v]
+        : [v, p, q];
+      return rgb.map((channel) => Math.round(channel * 255));
+    }
+
+    function saturation(rgb) {
+      return rgbToHsv(rgb)[1];
+    }
+
+    function colorDistance(a, b) {
+      const dr = a[0] - b[0];
+      const dg = a[1] - b[1];
+      const db = a[2] - b[2];
+      return Math.sqrt(dr * dr + dg * dg + db * db);
+    }
+
+    function toHex(rgb) {
+      return "#" + rgb.map((channel) => clamp(Math.round(channel), 0, 255).toString(16).padStart(2, "0")).join("");
+    }
+
+    function hexToRgb(value, fallback) {
+      const match = String(value || "").trim().match(/^#?([0-9a-f]{6})$/i);
+      if (!match) return fallback;
+      const raw = match[1];
+      return [
+        parseInt(raw.slice(0, 2), 16),
+        parseInt(raw.slice(2, 4), 16),
+        parseInt(raw.slice(4, 6), 16),
+      ];
+    }
+
+    function getPixel(data, width, x, y) {
+      const index = (y * width + x) * 4;
+      return [data[index], data[index + 1], data[index + 2], data[index + 3]];
+    }
+
+    function putPixel(data, width, x, y, rgb, alpha = 255) {
+      const index = (y * width + x) * 4;
+      data[index] = rgb[0];
+      data[index + 1] = rgb[1];
+      data[index + 2] = rgb[2];
+      data[index + 3] = alpha;
+    }
+
+    function drawImageToData(image) {
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(image, 0, 0);
+      return ctx.getImageData(0, 0, canvas.width, canvas.height);
+    }
+
+    function imageDataToCanvas(imageData) {
+      const canvas = document.createElement("canvas");
+      canvas.width = imageData.width;
+      canvas.height = imageData.height;
+      canvas.getContext("2d", { willReadFrequently: true }).putImageData(imageData, 0, 0);
+      return canvas;
+    }
+
+    function detectBackground(imageData) {
+      const { width, height, data } = imageData;
+      const counts = new Map();
+      const add = (x, y) => {
+        const [r, g, b, a] = getPixel(data, width, x, y);
+        if (a < 12) return;
+        const key = `${r},${g},${b}`;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      };
+      for (let x = 0; x < width; x += 1) {
+        add(x, 0);
+        add(x, height - 1);
+      }
+      for (let y = 0; y < height; y += 1) {
+        add(0, y);
+        add(width - 1, y);
+      }
+      let best = "0,0,0";
+      let bestCount = -1;
+      counts.forEach((count, key) => {
+        if (count > bestCount) {
+          best = key;
+          bestCount = count;
+        }
+      });
+      return best.split(",").map(Number);
+    }
+
+    function buildBackgroundMask(imageData, bg, options) {
+      const { width, height, data } = imageData;
+      const mask = Array.from({ length: height }, () => Array(width).fill(false));
+      const queue = [];
+      const isBg = (x, y) => {
+        const [r, g, b, a] = getPixel(data, width, x, y);
+        return a < 12 || colorDistance([r, g, b], bg) <= options.bgTolerance;
+      };
+      const push = (x, y) => {
+        if (x < 0 || y < 0 || x >= width || y >= height || mask[y][x] || !isBg(x, y)) return;
+        mask[y][x] = true;
+        queue.push([x, y]);
+      };
+
+      if (!options.floodBg) {
+        for (let y = 0; y < height; y += 1) {
+          for (let x = 0; x < width; x += 1) {
+            mask[y][x] = isBg(x, y);
+          }
+        }
+        return mask;
+      }
+
+      for (let x = 0; x < width; x += 1) {
+        push(x, 0);
+        push(x, height - 1);
+      }
+      for (let y = 0; y < height; y += 1) {
+        push(0, y);
+        push(width - 1, y);
+      }
+      for (let index = 0; index < queue.length; index += 1) {
+        const [x, y] = queue[index];
+        push(x + 1, y);
+        push(x - 1, y);
+        push(x, y + 1);
+        push(x, y - 1);
+      }
+      return mask;
+    }
+
+    function contentBox(imageData, bgMask) {
+      const { width, height, data } = imageData;
+      let minX = width;
+      let minY = height;
+      let maxX = -1;
+      let maxY = -1;
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const [, , , a] = getPixel(data, width, x, y);
+          if (a < 12 || bgMask[y][x]) continue;
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+        }
+      }
+      if (maxX < minX || maxY < minY) return { x: 0, y: 0, width, height };
+      return {
+        x: Math.max(0, minX - 1),
+        y: Math.max(0, minY - 1),
+        width: Math.min(width - 1, maxX + 1) - Math.max(0, minX - 1) + 1,
+        height: Math.min(height - 1, maxY + 1) - Math.max(0, minY - 1) + 1,
+      };
+    }
+
+    function cropImageData(imageData, box) {
+      const out = new ImageData(box.width, box.height);
+      for (let y = 0; y < box.height; y += 1) {
+        for (let x = 0; x < box.width; x += 1) {
+          const rgba = getPixel(imageData.data, imageData.width, box.x + x, box.y + y);
+          putPixel(out.data, box.width, x, y, rgba, rgba[3]);
+        }
+      }
+      return out;
+    }
+
+    function resizeImageDataNearest(imageData, width, height) {
+      const source = imageDataToCanvas(imageData);
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(source, 0, 0, width, height);
+      return ctx.getImageData(0, 0, width, height);
+    }
+
+    function isBlankWhite(rgb) {
+      return luminance(rgb) > 0.80 && saturation(rgb) < 0.22;
+    }
+
+    function isInk(rgb, options) {
+      if (options.preserveWhite && isBlankWhite(rgb)) return false;
+      const lum = luminance(rgb);
+      const sat = saturation(rgb);
+      const maxChannel = Math.max(rgb[0], rgb[1], rgb[2]) / 255;
+      return maxChannel < 0.16 || (lum <= options.inkLuma && sat <= options.inkSaturationMax);
+    }
+
+    function isNeutral(rgb, options) {
+      if (options.preserveWhite && isBlankWhite(rgb)) return false;
+      const sat = saturation(rgb);
+      const lum = luminance(rgb);
+      const chroma = (Math.max(rgb[0], rgb[1], rgb[2]) - Math.min(rgb[0], rgb[1], rgb[2])) / 255;
+      const hue = rgbToHsv(rgb)[0];
+      if (sat <= options.neutralSatMax) return true;
+      if (chroma <= 0.16 && lum >= 0.16) return true;
+      return chroma <= 0.20 && sat <= 0.42 && hue >= 0.50 && hue <= 0.76 && lum >= 0.18;
+    }
+
+    function neutralColor(rgb, options) {
+      const tint = hexToRgb(options.neutralTint, [154, 166, 184]);
+      const lum = luminance(rgb);
+      const level = clamp((0.14 + lum * 0.72) * options.neutralScale, 0, 1);
+      return tint.map((channel) => Math.round(channel * level));
+    }
+
+    function mapSourceColor(rgb, options) {
+      if (options.preserveWhite && isBlankWhite(rgb)) return [255, 255, 255];
+      if (isInk(rgb, options)) return hexToRgb(options.inkColor, [42, 48, 56]);
+      if (isNeutral(rgb, options)) return neutralColor(rgb, options);
+
+      const hsv = rgbToHsv(rgb);
+      hsv[0] = ((hsv[0] + options.hueShift / 360) % 1 + 1) % 1;
+      hsv[1] = clamp(Math.max(hsv[1], options.satFloor) * options.satGain, 0, 1);
+
+      let v = hsv[2];
+      v = (v - 0.5) * (1 + options.sourceContrast) + 0.5 + options.sourceExposure;
+      v = clamp(v, 0, 1);
+      v = Math.pow(v, options.valueGamma);
+      v = lerp(options.valueMin, options.valueMax, v);
+      if (options.shadowCrush > 0 && v < 0.52) {
+        v *= 1 - options.shadowCrush * (1 - v / 0.52);
+      }
+      hsv[2] = clamp(v, 0, 1);
+      return hsvToRgb(hsv);
+    }
+
+    function terminalColor(rgb, options) {
+      const wash = hexToRgb(options.washColor, [255, 138, 31]);
+      let mixed = rgb.map((channel, index) => lerp(channel, wash[index], options.warmWash));
+      let hsv = rgbToHsv(mixed);
+      hsv[1] = clamp(hsv[1] * options.crtSaturation, 0, 1);
+      hsv[2] = clamp(hsv[2] * options.crtExposure, 0, 1);
+      hsv[2] = Math.pow(hsv[2], options.crtGamma);
+      mixed = hsvToRgb(hsv);
+      return mixed.map((channel) => clamp((channel - 128) * options.crtContrast + 128, 0, 255));
+    }
+
+    function activeAt(imageData, bgMask, x, y, options) {
+      if (x >= imageData.width || y >= imageData.height) return false;
+      const rgba = getPixel(imageData.data, imageData.width, x, y);
+      if (rgba[3] < 12 || bgMask[y][x]) return false;
+      if (!options.preserveWhite && isBlankWhite(rgba.slice(0, 3))) return false;
+      return true;
+    }
+
+    function preprocess(image, options) {
+      const base = drawImageToData(image);
+      const bg = detectBackground(base);
+      const baseMask = buildBackgroundMask(base, bg, options);
+      const box = contentBox(base, baseMask);
+      const cropped = cropImageData(base, box);
+      const croppedMask = baseMask.slice(box.y, box.y + box.height).map((row) => row.slice(box.x, box.x + box.width));
+
+      let cellsWide = options.width;
+      let rows;
+      let pixelWidth;
+      let pixelHeight;
+      if (options.renderMode === "braille") {
+        rows = Math.max(1, Math.round((box.height / Math.max(1, box.width)) * cellsWide * 0.5));
+        pixelWidth = cellsWide * 2;
+        pixelHeight = rows * 4;
+      } else {
+        rows = Math.max(1, Math.round((box.height / Math.max(1, box.width)) * cellsWide * 0.5));
+        pixelWidth = cellsWide * 2;
+        pixelHeight = rows * 2;
+      }
+
+      const sourceCanvas = imageDataToCanvas(cropped);
+      const maskData = new ImageData(cropped.width, cropped.height);
+      for (let y = 0; y < cropped.height; y += 1) {
+        for (let x = 0; x < cropped.width; x += 1) {
+          const active = !croppedMask[y][x];
+          putPixel(maskData.data, cropped.width, x, y, active ? [255, 255, 255] : [0, 0, 0], 255);
+        }
+      }
+      const resized = resizeImageDataNearest(cropped, pixelWidth, pixelHeight);
+      const resizedMask = resizeImageDataNearest(maskData, pixelWidth, pixelHeight);
+      const bgMask = Array.from({ length: pixelHeight }, (_, y) =>
+        Array.from({ length: pixelWidth }, (_, x) => getPixel(resizedMask.data, pixelWidth, x, y)[0] < 128)
+      );
+
+      return { imageData: resized, bgMask, columns: cellsWide, rows, bg };
+    }
+
+    function cellAverage(colors) {
+      if (!colors.length) return null;
+      const channels = [0, 0, 0];
+      colors.forEach((rgb) => {
+        channels[0] += rgb[0];
+        channels[1] += rgb[1];
+        channels[2] += rgb[2];
+      });
+      return channels.map((channel) => Math.round(channel / colors.length));
+    }
+
+    function presentAverage(colors) {
+      return cellAverage(colors.filter(Boolean));
+    }
+
+    function buildCells(pre, options) {
+      const cells = [];
+      const richLines = [];
+      let activeCells = 0;
+      const colors = new Set();
+      const mode = options.renderMode;
+      const blockW = mode === "pixel" ? 1 : 2;
+      const blockH = mode === "braille" ? 4 : mode === "pixel" ? 1 : 2;
+      const outColumns = mode === "pixel" ? pre.imageData.width : pre.columns;
+      const outRows = mode === "pixel" ? pre.imageData.height : pre.rows;
+
+      for (let cy = 0; cy < outRows; cy += 1) {
+        const row = [];
+        const richRow = [];
+        for (let cx = 0; cx < outColumns; cx += 1) {
+          let bits = 0;
+          const mapped = [];
+          const term = [];
+          let active = 0;
+          const total = blockW * blockH;
+
+          for (let dy = 0; dy < blockH; dy += 1) {
+            for (let dx = 0; dx < blockW; dx += 1) {
+              const sx = cx * blockW + dx;
+              const sy = cy * blockH + dy;
+              const isActive = activeAt(pre.imageData, pre.bgMask, sx, sy, options);
+              if (!isActive) continue;
+              active += 1;
+              const rgba = getPixel(pre.imageData.data, pre.imageData.width, sx, sy);
+              const rgb = mapSourceColor(rgba.slice(0, 3), options);
+              mapped.push(rgb);
+              term.push(terminalColor(rgb, options));
+              if (mode === "quadrant") bits |= quadrantBits[dy][dx];
+              if (mode === "braille") bits |= brailleBits[dy][dx];
+              if (mode === "pixel") bits = 1;
+            }
+          }
+
+          if (active / total < options.coverage || active === 0) {
+            row.push({ bits: 0, color: null, terminalColor: null, active: 0 });
+            richRow.push({ char: " ", color: null });
+            continue;
+          }
+
+          let char = mode === "quadrant" ? (quadrantChars[bits] || " ") : mode === "braille" ? String.fromCharCode(0x2800 + bits) : "█";
+          let drawBits = bits;
+          let richColor = cellAverage(mapped);
+          let richBgColor = null;
+
+          if (mode === "quadrant" && bits === 15) {
+            const colors2x2 = [];
+            const terms2x2 = [];
+            for (let dy = 0; dy < 2; dy += 1) {
+              for (let dx = 0; dx < 2; dx += 1) {
+                const sx = cx * 2 + dx;
+                const sy = cy * 2 + dy;
+                if (!activeAt(pre.imageData, pre.bgMask, sx, sy, options)) {
+                  colors2x2.push(null);
+                  terms2x2.push(null);
+                  continue;
+                }
+                const rgba = getPixel(pre.imageData.data, pre.imageData.width, sx, sy);
+                const rgb = mapSourceColor(rgba.slice(0, 3), options);
+                colors2x2.push(rgb);
+                terms2x2.push(terminalColor(rgb, options));
+              }
+            }
+
+            const topColor = presentAverage([colors2x2[0], colors2x2[1]]);
+            const bottomColor = presentAverage([colors2x2[2], colors2x2[3]]);
+            const leftColor = presentAverage([colors2x2[0], colors2x2[2]]);
+            const rightColor = presentAverage([colors2x2[1], colors2x2[3]]);
+            const topDistance = topColor && bottomColor ? colorDistance(topColor, bottomColor) : 0;
+            const sideDistance = leftColor && rightColor ? colorDistance(leftColor, rightColor) : 0;
+
+            if (topColor && bottomColor && topDistance >= Math.max(24, sideDistance)) {
+              char = "▀";
+              drawBits = quadrantCharBits[char];
+              richColor = topColor;
+              richBgColor = bottomColor;
+            } else if (leftColor && rightColor && sideDistance >= 24) {
+              char = "▌";
+              drawBits = quadrantCharBits[char];
+              richColor = leftColor;
+              richBgColor = rightColor;
+            }
+          }
+
+          const terminalRgb = richColor ? terminalColor(richColor, options) : null;
+          const bgTerminalRgb = richBgColor ? terminalColor(richBgColor, options) : null;
+          const colorHex = richColor ? toHex(richColor) : null;
+          const bgHex = richBgColor ? toHex(richBgColor) : null;
+          if (colorHex) colors.add(colorHex);
+          if (bgHex) colors.add(bgHex);
+          activeCells += 1;
+          row.push({ bits: drawBits, color: colorHex, terminalColor: terminalRgb, bgTerminalColor: bgTerminalRgb, active });
+          richRow.push({ char, color: colorHex, bg: bgHex });
+        }
+
+        while (richRow.length && richRow[richRow.length - 1].char === " ") richRow.pop();
+        cells.push(row);
+        richLines.push(richRow);
+      }
+
+      return { cells, richLines, activeCells, colorCount: colors.size, columns: outColumns, rows: outRows };
+    }
+
+    function richFromLines(lines) {
+      return lines.map((line) => {
+        let out = "";
+        let activeColor = null;
+        let activeBg = null;
+        let buffer = "";
+        const flush = () => {
+          if (!buffer) return;
+          if (activeColor || activeBg) {
+            let style = "";
+            if (activeColor && activeBg) style = `${activeColor} on ${activeBg}`;
+            else if (activeColor) style = activeColor;
+            else style = `on ${activeBg}`;
+            out += `[${style}]${buffer}[/]`;
+          } else {
+            out += buffer;
+          }
+          buffer = "";
+        };
+        line.forEach((cell) => {
+          const cellBg = cell.bg || null;
+          if (cell.color !== activeColor || cellBg !== activeBg) {
+            flush();
+            activeColor = cell.color;
+            activeBg = cellBg;
+          }
+          buffer += cell.char;
+        });
+        flush();
+        return out;
+      }).join("\n").replace(/\s+$/g, "");
+    }
+
+    function extractBannerHero(yaml) {
+      const lines = yaml.split(/\r?\n/);
+      const start = lines.findIndex((line) => /^banner_hero:\s*\|/.test(line));
+      if (start < 0) return "";
+      const match = lines[start].match(/^banner_hero:\s*\|(\d*)/);
+      let indent = match && match[1] ? Number(match[1]) : 0;
+      const block = [];
+      for (let i = start + 1; i < lines.length; i += 1) {
+        const line = lines[i];
+        if (line && /^\S/.test(line)) break;
+        block.push(line);
+      }
+      if (!indent) {
+        const indents = block
+          .filter((line) => line.trim())
+          .map((line) => (line.match(/^ */) || [""])[0].length);
+        indent = indents.length ? Math.min(...indents) : 0;
+      }
+      return block.map((line) => line.slice(Math.min(indent, line.length))).join("\n").replace(/\s+$/g, "");
+    }
+
+    function parseRichStyle(styleText) {
+      const cleaned = styleText.replace(/^bold\s+/, "").trim();
+      const parts = cleaned.split(/\s+on\s+/);
+      const parseColor = (text) => {
+        const match = text.match(/#[0-9a-f]{6}/i);
+        return match ? match[0] : null;
+      };
+      return {
+        fg: parseColor(parts[0] || ""),
+        bg: parts[1] ? parseColor(parts[1]) : null,
+      };
+    }
+
+    function parseRichLine(line) {
+      const cells = [];
+      let style = { fg: null, bg: null };
+      let index = 0;
+      while (index < line.length) {
+        if (line[index] === "[") {
+          const end = line.indexOf("]", index);
+          if (end !== -1) {
+            const tag = line.slice(index + 1, end);
+            if (tag === "/") style = { fg: null, bg: null };
+            else style = parseRichStyle(tag);
+            index = end + 1;
+            continue;
+          }
+        }
+        const char = Array.from(line.slice(index))[0];
+        cells.push({ char, fg: style.fg, bg: style.bg });
+        index += char.length;
+      }
+      return cells;
+    }
+
+    function richToCells(rich, options) {
+      const richRows = rich.split(/\r?\n/).map(parseRichLine);
+      const columns = Math.max(1, ...richRows.map((row) => row.length));
+      const rows = richRows.length;
+      const cells = [];
+      const colors = new Set();
+      let activeCells = 0;
+      let mode = "quadrant";
+
+      for (let y = 0; y < rows; y += 1) {
+        const row = [];
+        for (let x = 0; x < columns; x += 1) {
+          const token = richRows[y][x] || { char: " ", fg: null, bg: null };
+          const code = token.char.codePointAt(0) || 0;
+          let bits = quadrantCharBits[token.char] ?? 0;
+          if (code >= 0x2800 && code <= 0x28ff) {
+            bits = code - 0x2800;
+            mode = "braille";
+          } else if (token.char.trim() && bits === 0) {
+            bits = 15;
+          }
+
+          const fg = token.fg ? hexToRgb(token.fg, [255, 255, 255]) : null;
+          const bg = token.bg ? hexToRgb(token.bg, [0, 0, 0]) : null;
+          if (token.fg) colors.add(token.fg.toLowerCase());
+          if (token.bg) colors.add(token.bg.toLowerCase());
+          if (bits && fg) activeCells += 1;
+          row.push({
+            bits,
+            color: token.fg,
+            terminalColor: fg ? terminalColor(fg, options) : null,
+            bgTerminalColor: bg ? terminalColor(bg, options) : null,
+            active: bits && fg ? 1 : 0,
+          });
+        }
+        cells.push(row);
+      }
+
+      return { cells, richLines: richRows, activeCells, colorCount: colors.size, columns, rows, mode };
+    }
+
+    function drawCells(canvas, result, options) {
+      const mode = result.mode || options.renderMode;
+      const cellW = options.cellScale;
+      const cellH = Math.max(1, Math.round(options.cellScale * options.cellAspect));
+      const pad = Math.max(12, Math.round(options.cellScale * 1.2));
+      const width = result.columns * cellW + pad * 2;
+      const height = result.rows * cellH + pad * 2;
+      canvas.width = width;
+      canvas.height = height;
+      canvas.style.setProperty("--terminal-bg", options.terminalBg);
+
+      const bg = hexToRgb(options.terminalBg, [22, 8, 3]);
+      const art = document.createElement("canvas");
+      art.width = width;
+      art.height = height;
+      const artCtx = art.getContext("2d");
+      artCtx.fillStyle = `rgb(${bg[0]}, ${bg[1]}, ${bg[2]})`;
+      artCtx.fillRect(0, 0, width, height);
+
+      for (let y = 0; y < result.rows; y += 1) {
+        for (let x = 0; x < result.columns; x += 1) {
+          const cell = result.cells[y][x];
+          const px = pad + x * cellW;
+          const py = pad + y * cellH;
+          if (!cell || (!cell.active && !cell.bgTerminalColor)) continue;
+          if (cell.bgTerminalColor) {
+            const bgRgb = cell.bgTerminalColor.map(Math.round);
+            artCtx.fillStyle = `rgb(${bgRgb[0]}, ${bgRgb[1]}, ${bgRgb[2]})`;
+            artCtx.fillRect(px, py, cellW, cellH);
+          }
+          if (!cell.active || !cell.terminalColor) continue;
+          const rgb = cell.terminalColor.map(Math.round);
+          artCtx.fillStyle = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+          if (mode === "quadrant") {
+            const halfW = Math.ceil(cellW / 2);
+            const halfH = Math.ceil(cellH / 2);
+            if (cell.bits & 1) artCtx.fillRect(px, py, halfW, halfH);
+            if (cell.bits & 2) artCtx.fillRect(px + Math.floor(cellW / 2), py, halfW, halfH);
+            if (cell.bits & 4) artCtx.fillRect(px, py + Math.floor(cellH / 2), halfW, halfH);
+            if (cell.bits & 8) artCtx.fillRect(px + Math.floor(cellW / 2), py + Math.floor(cellH / 2), halfW, halfH);
+          } else if (mode === "braille") {
+            const dotW = Math.max(1.5, cellW * 0.18);
+            const dotH = Math.max(1.5, cellH * 0.10);
+            for (let dy = 0; dy < 4; dy += 1) {
+              for (let dx = 0; dx < 2; dx += 1) {
+                if (!(cell.bits & brailleBits[dy][dx])) continue;
+                const cx = px + cellW * (dx ? 0.68 : 0.30);
+                const cy = py + cellH * (0.18 + dy * 0.21);
+                artCtx.beginPath();
+                artCtx.ellipse(cx, cy, dotW, dotH, 0, 0, Math.PI * 2);
+                artCtx.fill();
+              }
+            }
+          } else {
+            artCtx.fillRect(px, py, cellW, cellH);
+          }
+        }
+      }
+
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = `rgb(${bg[0]}, ${bg[1]}, ${bg[2]})`;
+      ctx.fillRect(0, 0, width, height);
+
+      if (options.glowStrength > 0 && options.glowBlur > 0) {
+        ctx.save();
+        ctx.globalAlpha = clamp(options.glowStrength / 2, 0, 1);
+        ctx.filter = `blur(${options.glowBlur}px)`;
+        ctx.drawImage(art, 0, 0);
+        ctx.restore();
+      }
+
+      ctx.drawImage(art, 0, 0);
+
+      if (options.scanOpacity > 0) {
+        ctx.save();
+        ctx.globalAlpha = options.scanOpacity;
+        ctx.fillStyle = "rgba(0,0,0,1)";
+        for (let y = 0; y < height; y += options.scanGap) {
+          ctx.fillRect(0, y, width, 1);
+        }
+        ctx.restore();
+      }
+
+      if (options.vignette > 0) {
+        const gradient = ctx.createRadialGradient(width / 2, height / 2, Math.min(width, height) * 0.12, width / 2, height / 2, Math.max(width, height) * 0.68);
+        gradient.addColorStop(0, "rgba(0,0,0,0)");
+        gradient.addColorStop(1, `rgba(0,0,0,${options.vignette})`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+      }
+    }
+
+    function readOptions() {
+      return {
+        previewSource: els.previewSource.value,
+        autoRefreshSkin: els.autoRefreshSkin.checked,
+        skinPollMs: Number(els.skinPollMs.value),
+        renderMode: els.renderMode.value,
+        width: Number(els.width.value),
+        bgTolerance: Number(els.bgTolerance.value),
+        coverage: Number(els.coverage.value),
+        floodBg: els.floodBg.checked,
+        preserveWhite: els.preserveWhite.checked,
+        satGain: Number(els.satGain.value),
+        satFloor: Number(els.satFloor.value),
+        valueMin: Number(els.valueMin.value),
+        valueMax: Number(els.valueMax.value),
+        valueGamma: Number(els.valueGamma.value),
+        sourceContrast: Number(els.sourceContrast.value),
+        sourceExposure: Number(els.sourceExposure.value),
+        shadowCrush: Number(els.shadowCrush.value),
+        hueShift: Number(els.hueShift.value),
+        inkColor: els.inkColor.value,
+        neutralTint: els.neutralTint.value,
+        inkLuma: Number(els.inkLuma.value),
+        inkSaturationMax: Number(els.inkSaturationMax.value),
+        neutralSatMax: Number(els.neutralSatMax.value),
+        neutralScale: Number(els.neutralScale.value),
+        terminalBg: els.terminalBg.value,
+        washColor: els.washColor.value,
+        cellScale: Number(els.cellScale.value),
+        cellAspect: Number(els.cellAspect.value),
+        crtExposure: Number(els.crtExposure.value),
+        crtSaturation: Number(els.crtSaturation.value),
+        crtContrast: Number(els.crtContrast.value),
+        crtGamma: Number(els.crtGamma.value),
+        warmWash: Number(els.warmWash.value),
+        glowStrength: Number(els.glowStrength.value),
+        glowBlur: Number(els.glowBlur.value),
+        scanOpacity: Number(els.scanOpacity.value),
+        scanGap: Number(els.scanGap.value),
+        vignette: Number(els.vignette.value),
+      };
+    }
+
+    function updateLabels(options) {
+      ids.forEach((id) => {
+        const valueEl = document.getElementById(`${id}Value`);
+        if (!valueEl) return;
+        const value = options[id];
+        valueEl.textContent = typeof value === "number" && !Number.isInteger(value) ? value.toFixed(2) : String(value);
+      });
+    }
+
+    function renderAll() {
+      const options = readOptions();
+      updateLabels(options);
+      state.lastResults.clear();
+
+      state.images.forEach((item) => {
+        if (!item.image.complete) return;
+        let result;
+        let pre = null;
+        if (options.previewSource === "skin" && state.skins.has(item.id)) {
+          result = richToCells(state.skins.get(item.id).rich, options);
+        } else {
+          pre = preprocess(item.image, options);
+          result = buildCells(pre, options);
+        }
+        state.lastResults.set(item.id, { pre, result });
+        drawCells(item.canvas, result, options);
+        item.meta.textContent = `${result.columns}x${result.rows} / ${result.activeCells} cells`;
+      });
+
+      const active = state.lastResults.get(state.activeId);
+      const activeItem = state.images.find((item) => item.id === state.activeId);
+      if (active && activeItem) {
+        state.lastRich = options.previewSource === "skin" && state.skins.has(state.activeId)
+          ? state.skins.get(state.activeId).rich
+          : richFromLines(active.result.richLines);
+        els.activeName.textContent = activeItem.name;
+        els.gridMetric.textContent = `${active.result.columns} x ${active.result.rows}`;
+        els.cellMetric.textContent = String(active.result.activeCells);
+        els.colorMetric.textContent = String(active.result.colorCount);
+        els.richMetric.textContent = `${state.lastRich.length} chars`;
+        els.richOutput.value = state.lastRich;
+      }
+    }
+
+    function scheduleRender() {
+      window.clearTimeout(state.renderTimer);
+      state.renderTimer = window.setTimeout(renderAll, 40);
+    }
+
+    function setActive(id) {
+      state.activeId = id;
+      document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.id === id));
+      renderAll();
+    }
+
+    function makePreview(item) {
+      const card = document.createElement("section");
+      card.className = "terminal-card";
+      card.dataset.id = item.id;
+      const head = document.createElement("div");
+      head.className = "card-head";
+      const title = document.createElement("span");
+      title.textContent = item.name;
+      const meta = document.createElement("span");
+      meta.className = "value";
+      meta.textContent = "loading";
+      head.append(title, meta);
+      const shell = document.createElement("div");
+      shell.className = "terminal-shell";
+      const canvas = document.createElement("canvas");
+      canvas.className = "terminal";
+      shell.appendChild(canvas);
+      card.append(head, shell);
+      item.canvas = canvas;
+      item.meta = meta;
+      els.previewGrid.appendChild(card);
+    }
+
+    function makeTabs() {
+      els.sampleTabs.textContent = "";
+      state.images.forEach((item) => {
+        const tab = document.createElement("button");
+        tab.type = "button";
+        tab.className = "tab";
+        tab.dataset.id = item.id;
+        tab.textContent = item.name;
+        tab.addEventListener("click", () => setActive(item.id));
+        els.sampleTabs.appendChild(tab);
+      });
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error(`Image failed: ${src}`));
+        image.src = src;
+      });
+    }
+
+    async function loadSamples() {
+      const results = await Promise.all(samples.map(async (sample) => {
+        try {
+          return {
+            ok: true,
+            item: {
+              ...sample,
+              image: await loadImage(`${sample.src}?ts=${Date.now()}`),
+            },
+          };
+        } catch (error) {
+          console.error(`Failed to load ${sample.src}`, error);
+          return { ok: false, item: sample, error };
+        }
+      }));
+      const loaded = results.filter((result) => result.ok).map((result) => result.item);
+      const failed = results.filter((result) => !result.ok);
+      state.images = loaded;
+      els.previewGrid.textContent = "";
+      loaded.forEach(makePreview);
+      failed.forEach((result) => {
+        const card = document.createElement("article");
+        card.className = "preview-card";
+        card.textContent = `${result.item.name}: failed to load ${result.item.src}`;
+        els.previewGrid.appendChild(card);
+      });
+      if (!loaded.length) throw new Error("No EVA sample images loaded.");
+      makeTabs();
+      await loadSkins();
+      setActive(state.activeId);
+    }
+
+    async function loadSkins() {
+      let changed = false;
+      await Promise.all(samples.map(async (sample) => {
+        try {
+          const response = await fetch(`../skins/${sample.id}.yaml?ts=${Date.now()}`);
+          if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+          const yaml = await response.text();
+          const rich = extractBannerHero(yaml);
+          const previous = state.skins.get(sample.id);
+          if (!previous || previous.yaml !== yaml || previous.rich !== rich) {
+            state.skins.set(sample.id, { yaml, rich });
+            changed = true;
+          }
+        } catch (error) {
+          console.warn(`Failed to load ${sample.id}.yaml`, error);
+        }
+      }));
+      return changed;
+    }
+
+    async function pollSkins() {
+      window.clearTimeout(state.skinPollTimer);
+      const options = readOptions();
+      if (options.previewSource === "skin" && options.autoRefreshSkin) {
+        const changed = await loadSkins();
+        if (changed) renderAll();
+      }
+      state.skinPollTimer = window.setTimeout(pollSkins, options.skinPollMs);
+    }
+
+    async function addUpload(file) {
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      const image = await loadImage(url);
+      const id = `upload-${Date.now()}`;
+      const item = { id, name: file.name.replace(/\.[^.]+$/, "") || "Upload", src: url, image, accent: "#ffffff" };
+      state.images.unshift(item);
+      els.previewGrid.textContent = "";
+      state.images.forEach((entry) => {
+        makePreview(entry);
+      });
+      makeTabs();
+      setActive(id);
+    }
+
+    async function copyText(text) {
+      if (!text) return;
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+      const area = document.createElement("textarea");
+      area.value = text;
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
+    }
+
+    ids.forEach((id) => {
+      const el = els[id];
+      el.addEventListener("input", scheduleRender);
+      el.addEventListener("change", scheduleRender);
+    });
+
+    els.resetBtn.addEventListener("click", () => {
+      ids.forEach((id) => {
+        const el = els[id];
+        if (el.type === "checkbox") el.checked = defaults[id];
+        else el.value = defaults[id];
+      });
+      renderAll();
+    });
+
+    els.copyConfigBtn.addEventListener("click", () => {
+      copyText(JSON.stringify(readOptions(), null, 2));
+    });
+
+    els.copyRichBtn.addEventListener("click", () => {
+      copyText(state.lastRich);
+    });
+
+    els.fileInput.addEventListener("change", () => {
+      addUpload(els.fileInput.files?.[0]);
+      els.fileInput.value = "";
+    });
+
+    loadSamples().then(() => {
+      pollSkins();
+    }).catch((error) => {
+      console.error(error);
+      els.previewGrid.textContent = "Failed to load EVA samples.";
+    });
+  </script>
+</body>
+</html>

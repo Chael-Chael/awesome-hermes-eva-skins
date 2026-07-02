@@ -157,7 +157,7 @@ def quote(value: str) -> str:
 
 def yaml_block(key: str, value: str, indent: int = 2) -> str:
     pad = " " * indent
-    return f"{key}: |-\n" + "\n".join(f"{pad}{line}" for line in value.splitlines())
+    return f"{key}: |{indent}-\n" + "\n".join(f"{pad}{line}" for line in value.splitlines())
 
 
 def make_logo(spec: EvaSkinSpec) -> str:
@@ -189,6 +189,9 @@ def make_hero(image_path: Path, width: int) -> str:
         background_tolerance=28.0,
         alpha_threshold=12,
         min_cell_coverage=0.05,
+        outline_radius=0,
+        ink_color=(42, 48, 56),
+        neutral_color=(143, 152, 168),
         fallback_color=(255, 255, 255),
         bold=False,
     )

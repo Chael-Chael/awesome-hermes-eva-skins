@@ -509,7 +509,7 @@
                 <label for="width">Width</label>
                 <span class="value" id="widthValue">50</span>
               </div>
-              <input id="width" type="range" min="16" max="72" value="50">
+              <input id="width" type="range" min="16" max="96" value="50">
             </div>
 
             <div class="field">
@@ -542,6 +542,14 @@
                 <span class="value" id="coverageValue">0.05</span>
               </div>
               <input id="coverage" type="range" min="0" max="0.5" step="0.01" value="0.05">
+            </div>
+
+            <div class="field">
+              <div class="field-row">
+                <label for="outlineRadius">Outline Radius</label>
+                <span class="value" id="outlineRadiusValue">0</span>
+              </div>
+              <input id="outlineRadius" type="range" min="0" max="3" value="0">
             </div>
 
             <div class="field">
@@ -588,6 +596,16 @@
                 <span class="value" id="colorRadiusValue">4</span>
               </div>
               <input id="colorRadius" type="range" min="1" max="10" value="4">
+            </div>
+
+            <div class="field">
+              <label for="inkColor">Ink Color</label>
+              <input id="inkColor" type="text" value="#2a3038">
+            </div>
+
+            <div class="field">
+              <label for="neutralColor">Neutral Color</label>
+              <input id="neutralColor" type="text" value="#8f98a8">
             </div>
 
             <label class="switch">
@@ -668,17 +686,21 @@
       bgTolerance: document.getElementById("bgTolerance"),
       blankCutoff: document.getElementById("blankCutoff"),
       coverage: document.getElementById("coverage"),
+      outlineRadius: document.getElementById("outlineRadius"),
       previewSize: document.getElementById("previewSize"),
       sharpen: document.getElementById("sharpen"),
       colorStrategy: document.getElementById("colorStrategy"),
       minLuma: document.getElementById("minLuma"),
       colorRadius: document.getElementById("colorRadius"),
+      inkColor: document.getElementById("inkColor"),
+      neutralColor: document.getElementById("neutralColor"),
       uncolorGray: document.getElementById("uncolorGray"),
       widthValue: document.getElementById("widthValue"),
       contrastValue: document.getElementById("contrastValue"),
       bgToleranceValue: document.getElementById("bgToleranceValue"),
       blankCutoffValue: document.getElementById("blankCutoffValue"),
       coverageValue: document.getElementById("coverageValue"),
+      outlineRadiusValue: document.getElementById("outlineRadiusValue"),
       previewSizeValue: document.getElementById("previewSizeValue"),
       minLumaValue: document.getElementById("minLumaValue"),
       colorRadiusValue: document.getElementById("colorRadiusValue"),
@@ -751,6 +773,17 @@
       }).join("");
     }
 
+    function hexToRgb(value, fallback) {
+      const match = String(value || "").trim().match(/^#?([0-9a-f]{6})$/i);
+      if (!match) return fallback;
+      const raw = match[1];
+      return [
+        parseInt(raw.slice(0, 2), 16),
+        parseInt(raw.slice(2, 4), 16),
+        parseInt(raw.slice(4, 6), 16),
+      ];
+    }
+
     function isWhiteOrGray(rgb, options) {
       if (!options.uncolorGray) return false;
       const lum = luminance(rgb);
@@ -762,6 +795,26 @@
       return luminance(rgb) > 0.80 && saturation(rgb) < 0.22;
     }
 
+    function isPixelArtInk(rgb) {
+      if (isPixelArtBlankWhite(rgb)) return false;
+      const lum = luminance(rgb);
+      const sat = saturation(rgb);
+      const maxChannel = Math.max(rgb[0], rgb[1], rgb[2]) / 255;
+      return maxChannel < 0.16 || (lum < 0.26 && sat < 0.38);
+    }
+
+    function hasPixelArtFill(rgb) {
+      return !isPixelArtBlankWhite(rgb) && !isPixelArtInk(rgb) && saturation(rgb) >= 0.18;
+    }
+
+    function shouldForceInkColor(outlineSamples, activePixels, activeSamples) {
+      if (outlineSamples <= 0) return false;
+      const coloredSamples = activeSamples.filter((sample) => hasPixelArtFill(sample.rgb)).length;
+      if (coloredSamples === 0) return true;
+      const outlineRatio = outlineSamples / Math.max(1, activePixels);
+      return outlineSamples >= 3 || (outlineSamples >= 2 && outlineRatio >= 0.6);
+    }
+
     function terminalVisibleColor(rgb, options) {
       const hsv = rgbToHsv(rgb);
       hsv[1] = clamp(Math.max(hsv[1], 0.62) * 1.08, 0, 1);
@@ -770,6 +823,27 @@
       const lum = luminance(visible);
       if (lum >= options.minLuma) return visible;
       const blend = clamp((options.minLuma - lum) / Math.max(0.001, 1 - lum), 0, 1);
+      visible = visible.map((channel) => Math.round(channel + (255 - channel) * blend));
+      return visible;
+    }
+
+    function pixelArtVisibleColor(rgb) {
+      const hsv = rgbToHsv(rgb);
+      if (hsv[1] >= 0.18) {
+        hsv[1] = clamp(Math.max(hsv[1], 0.64) * 1.24, 0, 1);
+        if (hsv[2] >= 0.42) {
+          hsv[2] = clamp((hsv[2] - 0.5) * 1.18 + 0.58, 0, 1);
+        } else {
+          hsv[2] = clamp(hsv[2] * 0.88, 0, 1);
+        }
+      } else {
+        hsv[2] = clamp(Math.max(hsv[2], 0.42), 0, 1);
+      }
+      let visible = hsvToRgb(hsv);
+      const lum = luminance(visible);
+      const minLuma = 0.30;
+      if (lum >= minLuma) return visible;
+      const blend = clamp((minLuma - lum) / Math.max(0.001, 1 - lum), 0, 0.28);
       visible = visible.map((channel) => Math.round(channel + (255 - channel) * blend));
       return visible;
     }
@@ -886,6 +960,48 @@
       return canvas;
     }
 
+    function buildPixelArtMasks(colorData, bg, options) {
+      const { width, height, data } = colorData;
+      const foreground = Array.from({ length: height }, () => Array(width).fill(false));
+      const outlineSeed = Array.from({ length: height }, () => Array(width).fill(false));
+      const outline = Array.from({ length: height }, () => Array(width).fill(false));
+
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          const [r, g, b, a] = getPixel(data, width, x, y);
+          const rgb = [r, g, b];
+          const active = a >= 12
+            && colorDistance(rgb, bg) > options.bgTolerance
+            && !isPixelArtBlankWhite(rgb);
+          foreground[y][x] = active;
+          outlineSeed[y][x] = active && isPixelArtInk(rgb);
+        }
+      }
+
+      const radius = Math.max(0, options.outlineRadius);
+      if (radius === 0) {
+        return { foreground, outline: outlineSeed };
+      }
+
+      for (let y = 0; y < height; y += 1) {
+        for (let x = 0; x < width; x += 1) {
+          if (!outlineSeed[y][x]) continue;
+          for (let oy = -radius; oy <= radius; oy += 1) {
+            for (let ox = -radius; ox <= radius; ox += 1) {
+              if (Math.abs(ox) + Math.abs(oy) > radius) continue;
+              const tx = x + ox;
+              const ty = y + oy;
+              if (tx >= 0 && ty >= 0 && tx < width && ty < height) {
+                outline[ty][tx] = true;
+              }
+            }
+          }
+        }
+      }
+
+      return { foreground, outline };
+    }
+
     function preprocess(source, options) {
       const base = document.createElement("canvas");
       base.width = source.naturalWidth;
@@ -913,10 +1029,12 @@
       const colorCtx = colorCanvas.getContext("2d", { willReadFrequently: true });
       const colorData = colorCtx.getImageData(0, 0, targetWidth, targetHeight);
       const dotGray = options.dotMode === "pixel-art" ? null : buildDotLayer(colorData, options);
+      const masks = options.dotMode === "pixel-art" ? buildPixelArtMasks(colorData, bg, options) : null;
 
       return {
         colorData,
         dotGray,
+        masks,
         width: targetWidth,
         height: targetHeight,
         columns: options.width,
@@ -1005,17 +1123,33 @@
     function averageActiveColor(samples, options) {
       let total = 0;
       const channels = [0, 0, 0];
+      let hasInk = false;
+      let neutralWeight = 0;
       samples.forEach((sample) => {
         const rgb = sample.rgb;
-        if (isWhiteOrGray(rgb, options)) return;
+        const lum = luminance(rgb);
+        const sat = saturation(rgb);
+        if (isPixelArtBlankWhite(rgb)) return;
+        if (isPixelArtInk(rgb)) {
+          hasInk = true;
+          return;
+        }
+        if (sat < 0.18) {
+          if (lum < 0.78) neutralWeight += 1;
+          return;
+        }
         const weight = Math.max(sample.darkness, sample.alpha / 255);
         total += weight;
         channels[0] += rgb[0] * weight;
         channels[1] += rgb[1] * weight;
         channels[2] += rgb[2] * weight;
       });
-      if (!total) return null;
-      return terminalVisibleColor(channels.map((channel) => Math.round(channel / total)), options);
+      if (!total) {
+        if (hasInk) return hexToRgb(options.inkColor, [42, 48, 56]);
+        if (neutralWeight) return hexToRgb(options.neutralColor, [143, 152, 168]);
+        return null;
+      }
+      return pixelArtVisibleColor(channels.map((channel) => Math.round(channel / total)));
     }
 
     function renderBraille(preprocessed, options) {
@@ -1031,6 +1165,8 @@
           let darknessTotal = 0;
           let totalSamples = 0;
           const activeSamples = [];
+          let outlineSamples = 0;
+          let activePixels = 0;
 
           for (let dy = 0; dy < 4; dy += 1) {
             for (let dx = 0; dx < 2; dx += 1) {
@@ -1038,11 +1174,7 @@
               const sy = y + dy;
               if (sx >= width || sy >= height) continue;
               if (options.dotMode === "pixel-art") {
-                const [r, g, b, a] = getPixel(colorData.data, width, sx, sy);
-                const rgb = [r, g, b];
-                const active = a >= 12
-                  && colorDistance(rgb, preprocessed.bg) > options.bgTolerance
-                  && !isPixelArtBlankWhite(rgb);
+                const active = preprocessed.masks.foreground[sy][sx] || preprocessed.masks.outline[sy][sx];
                 darknessTotal += active ? 1 : 0;
               } else {
                 darknessTotal += (255 - dotGray[sy * width + sx]) / 255;
@@ -1066,15 +1198,21 @@
               const rgba = getPixel(colorData.data, width, sx, sy);
               const rgb = rgba.slice(0, 3);
               const darkness = options.dotMode === "pixel-art"
-                ? (rgba[3] >= 12 && colorDistance(rgb, preprocessed.bg) > options.bgTolerance && !isPixelArtBlankWhite(rgb) ? 1 : 0)
+                ? (preprocessed.masks.foreground[sy][sx] || preprocessed.masks.outline[sy][sx] ? 1 : 0)
                 : (255 - dotGray[sy * width + sx]) / 255;
               if (options.dotMode === "pixel-art" ? darkness > 0 : darkness >= threshold) {
                 bits |= BRAILLE_BIT_GRID[dy][dx];
-                activeSamples.push({
-                  rgb: rgba.slice(0, 3),
-                  alpha: rgba[3],
-                  darkness,
-                });
+                activePixels += 1;
+                if (options.dotMode === "pixel-art" && preprocessed.masks.outline[sy][sx]) {
+                  outlineSamples += 1;
+                }
+                if (options.dotMode !== "pixel-art" || preprocessed.masks.foreground[sy][sx]) {
+                  activeSamples.push({
+                    rgb: rgba.slice(0, 3),
+                    alpha: rgba[3],
+                    darkness,
+                  });
+                }
               }
             }
           }
@@ -1087,6 +1225,8 @@
           let color = null;
           if (options.colorStrategy === "none") {
             color = null;
+          } else if (options.dotMode === "pixel-art" && shouldForceInkColor(outlineSamples, activePixels, activeSamples)) {
+            color = toHex(hexToRgb(options.inkColor, [42, 48, 56]));
           } else if (options.dotMode === "pixel-art" || options.colorStrategy === "active-average") {
             const rgb = averageActiveColor(activeSamples, options);
             color = rgb ? toHex(rgb) : null;
@@ -1159,6 +1299,7 @@
       els.bgToleranceValue.textContent = els.bgTolerance.value;
       els.blankCutoffValue.textContent = Number(els.blankCutoff.value).toFixed(2);
       els.coverageValue.textContent = Number(els.coverage.value).toFixed(2);
+      els.outlineRadiusValue.textContent = els.outlineRadius.value;
       els.previewSizeValue.textContent = els.previewSize.value;
       els.minLumaValue.textContent = Number(els.minLuma.value).toFixed(2);
       els.colorRadiusValue.textContent = els.colorRadius.value;
@@ -1172,11 +1313,14 @@
         bgTolerance: Number(els.bgTolerance.value),
         blankCutoff: Number(els.blankCutoff.value),
         coverage: Number(els.coverage.value),
+        outlineRadius: Number(els.outlineRadius.value),
         sharpen: els.sharpen.checked,
         dotMode: els.dotMode.value,
         colorStrategy: els.colorStrategy.value,
         minLuma: Number(els.minLuma.value),
         colorRadius: Number(els.colorRadius.value),
+        inkColor: els.inkColor.value,
+        neutralColor: els.neutralColor.value,
         uncolorGray: els.uncolorGray.checked,
       };
     }
@@ -1355,11 +1499,14 @@
         els.bgTolerance,
         els.blankCutoff,
         els.coverage,
+        els.outlineRadius,
         els.previewSize,
         els.sharpen,
         els.colorStrategy,
         els.minLuma,
         els.colorRadius,
+        els.inkColor,
+        els.neutralColor,
         els.uncolorGray,
       ].forEach((el) => el.addEventListener("input", scheduleRender));
       els.copyRich.addEventListener("click", () => copyText(lastRich));
