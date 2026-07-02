@@ -56,7 +56,7 @@ RAW_HERO = """
 """.strip("\n")
 
 
-NERV_HERO_RED = "#ff2020"
+NERV_HERO_RED = "#b01010"
 
 
 def foreground_mask(image: Image.Image) -> Image.Image:
@@ -215,7 +215,8 @@ NERV_SPEC = EvaSkinSpec(
 def main() -> None:
     out_dir = Path("skins")
     out_dir.mkdir(exist_ok=True)
-    hero = tint_hero(normalize_hero_width(RAW_HERO, HERO_WIDTH))
+    raw_hero = image_to_braille_hero(SOURCE_IMAGE, HERO_WIDTH)
+    hero = tint_hero(normalize_hero_width(raw_hero, HERO_WIDTH))
     out_path = out_dir / "eva-nerv.yaml"
     out_path.write_text(make_skin_yaml(NERV_SPEC, hero), encoding="utf-8", newline="\n")
     print(out_path)
