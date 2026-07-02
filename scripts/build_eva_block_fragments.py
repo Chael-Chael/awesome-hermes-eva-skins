@@ -17,13 +17,13 @@ from image_to_rich_braille import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_DIR = Path.home() / "Downloads" / "evafinalpixeljointprevia_heads"
+SOURCE_DIR = ROOT / "reference"
 OUT_DIR = ROOT / "screenshots"
 WIDTH = 50
 ITEMS = [
-    ("eva-00", "01_unit-00_blue.png", (154, 216, 255), (128, 210, 255)),
-    ("eva-01", "02_unit-01_purple.png", (128, 184, 255), (106, 155, 232)),
-    ("eva-02", "03_unit-02_red.png", (255, 192, 160), (255, 159, 184)),
+    ("eva-00", "01_unit-00_blue_white_bg.png", (154, 216, 255), (128, 210, 255)),
+    ("eva-01", "02_unit-01_purple_white_bg.png", (128, 184, 255), (106, 155, 232)),
+    ("eva-02", "03_unit-02_red_white_bg.png", (255, 192, 160), (255, 159, 184)),
 ]
 TAG_RE = re.compile(r"\[([^\]]+)\](.*?)\[/\]")
 

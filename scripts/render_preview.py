@@ -13,10 +13,11 @@ from image_to_rich_braille import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SOURCE_DIR = ROOT / "reference"
 ITEMS = [
-    ("eva-00", Path(r"C:\Users\27923\Downloads\evafinalpixeljointprevia_heads\01_unit-00_blue_white_bg.png")),
-    ("eva-01", Path(r"C:\Users\27923\Downloads\evafinalpixeljointprevia_heads\02_unit-01_purple_white_bg.png")),
-    ("eva-02", Path(r"C:\Users\27923\Downloads\evafinalpixeljointprevia_heads\03_unit-02_red_white_bg.png")),
+    ("eva-00", SOURCE_DIR / "01_unit-00_blue_white_bg.png"),
+    ("eva-01", SOURCE_DIR / "02_unit-01_purple_white_bg.png"),
+    ("eva-02", SOURCE_DIR / "03_unit-02_red_white_bg.png"),
 ]
 TAG_RE = re.compile(r"\[#([0-9a-fA-F]{6})\](.*?)\[/\]")
 

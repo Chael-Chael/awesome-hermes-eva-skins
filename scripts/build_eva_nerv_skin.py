@@ -10,7 +10,8 @@ from PIL import Image, ImageFilter
 from build_eva_skins import EvaSkinSpec, make_skin_yaml
 
 
-SOURCE_IMAGE = Path.home() / "Downloads" / "nerv.png"
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE_IMAGE = ROOT / "reference" / "nerv.png"
 HERO_WIDTH = 50
 BRAILLE_BLANK = "\u2800"
 BRAILLE_BIT_GRID = (

@@ -18,6 +18,9 @@ from image_to_rich_braille import (
 )
 
 
+ROOT = Path(__file__).resolve().parents[1]
+
+
 @dataclass(frozen=True)
 class EvaSkinSpec:
     name: str
@@ -275,8 +278,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--source-dir",
         type=Path,
-        default=Path.home() / "Downloads" / "evafinalpixeljointprevia_heads",
-        help="Directory containing extracted EVA head PNG files.",
+        default=ROOT / "reference",
+        help="Directory containing EVA reference PNG files.",
     )
     parser.add_argument("--skins-dir", type=Path, default=Path("skins"), help="Output skin directory.")
     parser.add_argument(
