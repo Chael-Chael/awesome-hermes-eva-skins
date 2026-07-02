@@ -1,5 +1,5 @@
-name: eva-00
-description: "EVA-00 Prototype - Rei blue/white colored braille hero"
+name: eva-00-glow
+description: "EVA-00 Prototype - Rei blue/white colored braille hero - readable glow 0.40 quadrant compensation test"
 colors:
   banner_border: "#4da3ff"
   banner_title: "#e8f5ff"

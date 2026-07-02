@@ -1,5 +1,5 @@
-name: eva-01
-description: "EVA-01 Test Type - purple/green/orange colored braille hero"
+name: eva-01-glow
+description: "EVA-01 Test Type - purple/green/orange colored braille hero - readable glow 0.40 quadrant compensation test"
 colors:
   banner_border: "#8a5cff"
   banner_title: "#d8ccff"

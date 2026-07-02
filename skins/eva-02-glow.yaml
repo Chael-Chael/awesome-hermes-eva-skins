@@ -1,5 +1,5 @@
-name: eva-02
-description: "EVA-02 Production Model - Asuka red/orange colored braille hero"
+name: eva-02-glow
+description: "EVA-02 Production Model - Asuka red/orange colored braille hero - readable glow 0.40 quadrant compensation test"
 colors:
   banner_border: "#ff0015"
   banner_title: "#ffffff"
