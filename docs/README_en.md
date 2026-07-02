@@ -8,7 +8,7 @@ This repo intentionally ships only reusable theme assets. It does not include a 
 
 ## What is included
 
-- `skins/eva-00.yaml`, `skins/eva-01.yaml`, `skins/eva-02.yaml`, `skins/eva-magi.yaml` - Hermes CLI skins.
+- `skins/eva-00.yaml`, `skins/eva-01.yaml`, `skins/eva-02.yaml`, `skins/eva-nerv.yaml` - Hermes CLI skins.
 - `tools/braille-studio.html` - browser UI for image-to-colored-braille conversion.
 - `fonts/ark-pixel-font-12px-monospaced-ttf-v2026.05.07/` - Ark Pixel font files used by the terminal profile.
 - `shaders/cool-retro-frame-amber.hlsl`, `shaders/cool-retro-frame-magi.hlsl` - CRT pixel shaders for Windows Terminal.
