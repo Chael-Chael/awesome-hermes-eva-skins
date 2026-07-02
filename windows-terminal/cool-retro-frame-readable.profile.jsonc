@@ -6,8 +6,8 @@
   "cursorShape": "filledBox",
 
   // Replace this with the absolute path where you copied the shader.
-  // Example: C:\\Users\\you\\AppData\\Local\\WindowsTerminalShaders\\cool-retro-frame-amber.hlsl
-  "experimental.pixelShaderPath": "C:\\Users\\<YOU>\\AppData\\Local\\WindowsTerminalShaders\\cool-retro-frame-amber.hlsl",
+  // Example: C:\\Users\\you\\AppData\\Local\\WindowsTerminalShaders\\cool-retro-frame-readable.hlsl
+  "experimental.pixelShaderPath": "C:\\Users\\<YOU>\\AppData\\Local\\WindowsTerminalShaders\\cool-retro-frame-readable.hlsl",
   "experimental.retroTerminalEffect": false,
 
   "font": {
@@ -16,10 +16,10 @@
     "size": 16,
     "weight": "normal"
   },
-  "guid": "{64d9f64b-14cf-4548-8056-a86c8cb20f74}",
+  "guid": "{c50c5efb-383d-4a1e-81fa-e7df259a1399}",
   "hidden": false,
   "icon": "\ue756",
-  "name": "Cool Retro Frame Amber",
+  "name": "Cool Retro Frame Readable",
   "opacity": 100,
   "useAcrylic": false
 }

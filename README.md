@@ -11,10 +11,11 @@
 - `skins/eva-00.yaml`、`skins/eva-01.yaml`、`skins/eva-02.yaml`、`skins/eva-nerv.yaml` - Hermes CLI 皮肤。
 - `tools/braille-studio.html` - 用于图片转彩色 braille 的浏览器界面。
 - `fonts/ark-pixel-font-12px-monospaced-ttf-v2026.05.07/` - Windows Terminal profile 使用的 Ark Pixel 字体文件。
-- `shaders/cool-retro-frame-amber.hlsl`、`shaders/cool-retro-frame-magi.hlsl` - Windows Terminal CRT 像素着色器。
+- `shaders/cool-retro-frame-amber.hlsl`、`shaders/cool-retro-frame-readable.hlsl`、`shaders/cool-retro-frame-magi.hlsl` - Windows Terminal CRT 像素着色器。
 - `windows-terminal/cool-retro-amber.scheme.jsonc`、`windows-terminal/eva-magi.scheme.jsonc` - Windows Terminal 配色片段。
-- `windows-terminal/cool-retro-frame-amber.profile.jsonc`、`windows-terminal/cool-retro-frame-magi.profile.jsonc` - Windows Terminal profile 片段。
+- `windows-terminal/cool-retro-frame-amber.profile.jsonc`、`windows-terminal/cool-retro-frame-readable.profile.jsonc`、`windows-terminal/cool-retro-frame-magi.profile.jsonc` - Windows Terminal profile 片段。
 - `windows-terminal/keybindings.jsonc` - 可选的 shader/focus 快捷键片段。
+- `scripts/install-windows.ps1` - Windows 当前用户一键安装脚本，自动安装 TTF、Hermes YAML、HLSL 和 Windows Terminal profile。
 
 ## 环境要求
 
@@ -23,7 +24,69 @@
 - 本地安装仓库内置的 Ark Pixel 字体。Windows Terminal profile 使用 `Ark Pixel 12px Mono zh_cn`、`Ark Pixel 12px Mono ja`、`Ark Pixel 12px Mono ko` 和 `Ark Pixel 12px Mono latin`。
 - 使用 UTF-8 编辑文件。不要把 YAML 保存为 ANSI/GBK。
 
-## 安装字体
+## 安装方式 1：最简单自动化安装版
+
+适合第一次使用、只想快速装好的用户。这个脚本只写当前用户目录，不需要管理员权限；修改 Windows Terminal `settings.json` 前会自动生成 `.bak-时间戳` 备份。
+
+先克隆仓库：
+
+```powershell
+git clone https://github.com/Chael-Chael/awesome-hermes-eva-skins.git
+cd awesome-hermes-eva-skins
+```
+
+先试跑，确认将要改哪些位置：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -DryRun
+```
+
+确认无误后执行安装：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1
+```
+
+脚本会自动完成：
+
+1. 安装仓库内置的四个 Ark Pixel `.ttf` 字体到当前用户字体目录。
+2. 把 `skins/*.yaml` 复制到 Hermes 皮肤目录，默认启用 `eva-02`。
+3. 把 `shaders/*.hlsl` 复制到 `%LOCALAPPDATA%\WindowsTerminalShaders`。
+4. 找到真实的 Windows Terminal `settings.json`，合并 `Cool Retro Amber` 配色、`Cool Retro Frame Amber` 和 `Cool Retro Frame Readable` 两个 PowerShell profile，以及 `Shift+F10`/`Shift+F11` 快捷键。
+
+安装后：
+
+1. 重启 Windows Terminal。
+2. 在 Windows Terminal 的下拉菜单里打开 `Cool Retro Frame Amber` 或 `Cool Retro Frame Readable`。
+3. 启动 Hermes。如果脚本没有找到 `hermes` 命令，在 Hermes 里手动输入：
+
+```text
+/skin eva-02
+```
+
+常用选项：
+
+```powershell
+# 同时安装 Amber、Readable 和 MAGI 三套 Windows Terminal profile
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Theme All
+
+# 只安装可读版 Windows Terminal profile
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Theme Readable
+
+# 默认 Hermes 皮肤改成 eva-01
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Skin eva-01
+
+# 只安装 Hermes YAML，不改字体和 Windows Terminal
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -SkipFonts -SkipWindowsTerminal
+```
+
+脚本不会自动安装 Hermes Agent 或 Windows Terminal 本体。如果找不到 Windows Terminal `settings.json`，先打开一次 Windows Terminal，再重新运行脚本。
+
+## 安装方式 2：手动安装版
+
+手动安装适合想看清楚每一步改了什么、或者需要把配置复制到自定义路径的用户。
+
+### 第 1 步：安装 TTF 字体
 
 导入 Windows Terminal profile 前，先安装仓库内置的 Ark Pixel 字体。profile 需要以下精确字体 family 名称：
 
@@ -66,7 +129,9 @@ foreach ($entry in $fonts.GetEnumerator()) {
 
 如果 banner 显示成方块、回退成普通等宽字体，或者 ASCII art 明显错位，通常是字体未安装，或 Windows Terminal 还没有重启。
 
-## 安装 Hermes 皮肤
+这一步的作用：让 Windows Terminal 能找到 EVA profile 指定的像素字体。没有这一步，终端仍能打开，但 banner、中文、日文、韩文和像素字符可能会显示成方块或错位。
+
+### 第 2 步：安装 Hermes YAML 皮肤
 
 克隆本仓库，然后把皮肤复制到 Hermes 皮肤目录：
 
@@ -95,6 +160,60 @@ Hermes 也支持 `HERMES_HOME`。如果你使用自定义 Hermes home，请把 Y
 
 ```text
 %HERMES_HOME%\skins\eva-02.yaml
+```
+
+这一步的作用：把 Hermes 能识别的皮肤文件放到 Hermes home。`eva-02.yaml` 是默认推荐皮肤；你也可以复制并启用 `eva-00.yaml`、`eva-01.yaml` 或 `eva-nerv.yaml`。
+
+### 第 3 步：安装 Windows Terminal HLSL 视觉效果
+
+把 shader 复制到稳定的本地目录：
+
+```powershell
+$shaderDir = "$env:LOCALAPPDATA\WindowsTerminalShaders"
+New-Item -ItemType Directory -Force $shaderDir
+Copy-Item ".\shaders\cool-retro-frame-amber.hlsl" "$shaderDir\cool-retro-frame-amber.hlsl"
+Copy-Item ".\shaders\cool-retro-frame-readable.hlsl" "$shaderDir\cool-retro-frame-readable.hlsl"
+```
+
+打开 Windows Terminal settings JSON：
+
+1. 打开 Windows Terminal。
+2. 按 `Ctrl+,`。
+3. 点击 `Open JSON file`。
+
+然后编辑三个部分：
+
+1. 把 `windows-terminal/cool-retro-amber.scheme.jsonc` 中的对象加入顶层 `schemes` 数组。
+2. 把 `windows-terminal/cool-retro-frame-amber.profile.jsonc` 和 `windows-terminal/cool-retro-frame-readable.profile.jsonc` 中的对象加入 `profiles.list`。
+3. 在两个 profile 中，把 `experimental.pixelShaderPath` 替换为你的真实 shader 路径，例如：
+
+```jsonc
+"experimental.pixelShaderPath": "C:\\Users\\you\\AppData\\Local\\WindowsTerminalShaders\\cool-retro-frame-amber.hlsl"
+```
+
+```jsonc
+"experimental.pixelShaderPath": "C:\\Users\\you\\AppData\\Local\\WindowsTerminalShaders\\cool-retro-frame-readable.hlsl"
+```
+
+可选：根据你的 Windows Terminal settings schema，把 `windows-terminal/keybindings.jsonc` 中的条目加入顶层 `keybindings` 或 `actions` 数组。
+
+这一步的作用：创建两个新的 Windows Terminal PowerShell profile。`experimental.pixelShaderPath` 指向 HLSL 文件，负责 CRT 外框、扫描线、辉光和琥珀色映射；`colorScheme` 指向配色；`commandline` 指向 Windows PowerShell。这里配置的是 Windows Terminal 的 profile，不是 PowerShell 的 `$PROFILE` 启动脚本。
+
+Amber profile 使用：
+
+```jsonc
+{
+  "antialiasingMode": "aliased",
+  "colorScheme": "Cool Retro Amber",
+  "cursorShape": "filledBox",
+  "experimental.retroTerminalEffect": false,
+  "font": {
+    "builtinGlyphs": true,
+    "size": 16
+  },
+  "opacity": 100,
+  "useAcrylic": false
+}
 ```
 
 ## 从图片生成彩色 banner hero
@@ -181,51 +300,6 @@ http://127.0.0.1:4173/tools/braille-studio.html
 ```
 
 这个页面完全在本地浏览器运行。上传图片后，可以调节宽度、对比度、背景容差、空白截断、覆盖率、锐化、颜色策略和最低颜色亮度，然后复制或下载生成的 `banner_hero` YAML block。`Sample` 按钮会加载内置测试图，方便快速调参。
-
-## 安装 Windows Terminal 视觉效果
-
-把 shader 复制到稳定的本地目录：
-
-```powershell
-$shaderDir = "$env:LOCALAPPDATA\WindowsTerminalShaders"
-New-Item -ItemType Directory -Force $shaderDir
-Copy-Item ".\shaders\cool-retro-frame-amber.hlsl" "$shaderDir\cool-retro-frame-amber.hlsl"
-```
-
-打开 Windows Terminal settings JSON：
-
-1. 打开 Windows Terminal。
-2. 按 `Ctrl+,`。
-3. 点击 `Open JSON file`。
-
-然后编辑三个部分：
-
-1. 把 `windows-terminal/cool-retro-amber.scheme.jsonc` 中的对象加入顶层 `schemes` 数组。
-2. 把 `windows-terminal/cool-retro-frame-amber.profile.jsonc` 中的对象加入 `profiles.list`。
-3. 在该 profile 中，把 `experimental.pixelShaderPath` 替换为你的真实 shader 路径，例如：
-
-```jsonc
-"experimental.pixelShaderPath": "C:\\Users\\you\\AppData\\Local\\WindowsTerminalShaders\\cool-retro-frame-amber.hlsl"
-```
-
-可选：根据你的 Windows Terminal settings schema，把 `windows-terminal/keybindings.jsonc` 中的条目加入顶层 `keybindings` 或 `actions` 数组。
-
-原始 profile 使用：
-
-```jsonc
-{
-  "antialiasingMode": "aliased",
-  "colorScheme": "Cool Retro Amber",
-  "cursorShape": "filledBox",
-  "experimental.retroTerminalEffect": false,
-  "font": {
-    "builtinGlyphs": true,
-    "size": 16
-  },
-  "opacity": 100,
-  "useAcrylic": false
-}
-```
 
 ## HLSL 色彩映射逻辑
 

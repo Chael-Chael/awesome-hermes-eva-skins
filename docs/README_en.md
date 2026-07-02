@@ -11,10 +11,11 @@ This repo intentionally ships only reusable theme assets. It does not include a 
 - `skins/eva-00.yaml`, `skins/eva-01.yaml`, `skins/eva-02.yaml`, `skins/eva-nerv.yaml` - Hermes CLI skins.
 - `tools/braille-studio.html` - browser UI for image-to-colored-braille conversion.
 - `fonts/ark-pixel-font-12px-monospaced-ttf-v2026.05.07/` - Ark Pixel font files used by the terminal profile.
-- `shaders/cool-retro-frame-amber.hlsl`, `shaders/cool-retro-frame-magi.hlsl` - CRT pixel shaders for Windows Terminal.
+- `shaders/cool-retro-frame-amber.hlsl`, `shaders/cool-retro-frame-readable.hlsl`, `shaders/cool-retro-frame-magi.hlsl` - CRT pixel shaders for Windows Terminal.
 - `windows-terminal/cool-retro-amber.scheme.jsonc`, `windows-terminal/eva-magi.scheme.jsonc` - Windows Terminal color scheme snippets.
-- `windows-terminal/cool-retro-frame-amber.profile.jsonc`, `windows-terminal/cool-retro-frame-magi.profile.jsonc` - Windows Terminal profile snippets.
+- `windows-terminal/cool-retro-frame-amber.profile.jsonc`, `windows-terminal/cool-retro-frame-readable.profile.jsonc`, `windows-terminal/cool-retro-frame-magi.profile.jsonc` - Windows Terminal profile snippets.
 - `windows-terminal/keybindings.jsonc` - optional shader/focus toggle keybindings.
+- `scripts/install-windows.ps1` - current-user Windows installer for TTF fonts, Hermes YAML skins, HLSL shaders, and Windows Terminal profiles.
 
 ## Requirements
 
@@ -23,7 +24,69 @@ This repo intentionally ships only reusable theme assets. It does not include a 
 - The bundled Ark Pixel fonts installed locally. The Windows Terminal profile uses `Ark Pixel 12px Mono zh_cn`, `Ark Pixel 12px Mono ja`, `Ark Pixel 12px Mono ko`, and `Ark Pixel 12px Mono latin`.
 - UTF-8 editing. Do not save the YAML files as ANSI/GBK.
 
-## Install the font
+## Option 1: Simple automated install
+
+Use this path if you want the quickest setup. The installer writes only to the current user account and does not require administrator privileges. Before changing Windows Terminal `settings.json`, it creates a `.bak-timestamp` backup.
+
+Clone the repo:
+
+```powershell
+git clone https://github.com/Chael-Chael/awesome-hermes-eva-skins.git
+cd awesome-hermes-eva-skins
+```
+
+Preview the changes first:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -DryRun
+```
+
+Run the install:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1
+```
+
+The script automatically:
+
+1. Installs the four bundled Ark Pixel `.ttf` fonts for the current user.
+2. Copies `skins/*.yaml` into the Hermes skin directory and enables `eva-02` by default.
+3. Copies `shaders/*.hlsl` into `%LOCALAPPDATA%\WindowsTerminalShaders`.
+4. Finds the real Windows Terminal `settings.json`, then merges the `Cool Retro Amber` color scheme, the `Cool Retro Frame Amber` and `Cool Retro Frame Readable` PowerShell profiles, and `Shift+F10`/`Shift+F11` shortcuts.
+
+After installation:
+
+1. Restart Windows Terminal.
+2. Open `Cool Retro Frame Amber` or `Cool Retro Frame Readable` from the Windows Terminal dropdown.
+3. Start Hermes. If the installer did not find the `hermes` command, run this inside Hermes:
+
+```text
+/skin eva-02
+```
+
+Common options:
+
+```powershell
+# Install Amber, Readable, and MAGI Windows Terminal profiles
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Theme All
+
+# Install only the readable Windows Terminal profile
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Theme Readable
+
+# Use eva-01 as the default Hermes skin
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -Skin eva-01
+
+# Install only Hermes YAML skins, without changing fonts or Windows Terminal
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-windows.ps1 -SkipFonts -SkipWindowsTerminal
+```
+
+The script does not install Hermes Agent or Windows Terminal itself. If it cannot find Windows Terminal `settings.json`, open Windows Terminal once, then run the script again.
+
+## Option 2: Manual install
+
+Use this path if you want to inspect each change or copy files into custom locations.
+
+### Step 1: Install TTF fonts
 
 Install the bundled Ark Pixel fonts before importing the Windows Terminal profile. The profile expects these exact font family names:
 
@@ -66,7 +129,9 @@ foreach ($entry in $fonts.GetEnumerator()) {
 
 If the banner renders as boxes, falls back to a normal monospace font, or the ASCII art is badly misaligned, the fonts are not installed or Windows Terminal has not been restarted.
 
-## Install the Hermes skin
+This step lets Windows Terminal find the pixel font expected by the EVA profile. Without it, the terminal can still open, but banners, CJK text, and pixel characters may render as boxes or misalign.
+
+### Step 2: Install the Hermes YAML skin
 
 Clone this repo, then copy the skin into your Hermes skin directory:
 
@@ -95,6 +160,60 @@ Hermes also respects `HERMES_HOME`. If you use a custom Hermes home, copy the YA
 
 ```text
 %HERMES_HOME%\skins\eva-02.yaml
+```
+
+This step puts the Hermes-readable skin file under the Hermes home directory. `eva-02.yaml` is the default recommendation, but you can also copy and enable `eva-00.yaml`, `eva-01.yaml`, or `eva-nerv.yaml`.
+
+### Step 3: Install the Windows Terminal HLSL look
+
+Copy the shader to a stable local directory:
+
+```powershell
+$shaderDir = "$env:LOCALAPPDATA\WindowsTerminalShaders"
+New-Item -ItemType Directory -Force $shaderDir
+Copy-Item ".\shaders\cool-retro-frame-amber.hlsl" "$shaderDir\cool-retro-frame-amber.hlsl"
+Copy-Item ".\shaders\cool-retro-frame-readable.hlsl" "$shaderDir\cool-retro-frame-readable.hlsl"
+```
+
+Open Windows Terminal settings JSON:
+
+1. Open Windows Terminal.
+2. Press `Ctrl+,`.
+3. Click `Open JSON file`.
+
+Then edit three sections:
+
+1. Add the object from `windows-terminal/cool-retro-amber.scheme.jsonc` into the top-level `schemes` array.
+2. Add the objects from `windows-terminal/cool-retro-frame-amber.profile.jsonc` and `windows-terminal/cool-retro-frame-readable.profile.jsonc` into `profiles.list`.
+3. In both profiles, replace `experimental.pixelShaderPath` with your real shader paths, for example:
+
+```jsonc
+"experimental.pixelShaderPath": "C:\\Users\\you\\AppData\\Local\\WindowsTerminalShaders\\cool-retro-frame-amber.hlsl"
+```
+
+```jsonc
+"experimental.pixelShaderPath": "C:\\Users\\you\\AppData\\Local\\WindowsTerminalShaders\\cool-retro-frame-readable.hlsl"
+```
+
+Optional: add the entries from `windows-terminal/keybindings.jsonc` into the top-level `keybindings` or `actions` array, depending on your Windows Terminal settings schema.
+
+This step creates two new Windows Terminal PowerShell profiles. `experimental.pixelShaderPath` points to the HLSL file for the CRT frame, scanlines, glow, and amber color remapping; `colorScheme` points to the palette; `commandline` points to Windows PowerShell. This configures Windows Terminal profiles, not the PowerShell `$PROFILE` startup script.
+
+The Amber profile uses:
+
+```jsonc
+{
+  "antialiasingMode": "aliased",
+  "colorScheme": "Cool Retro Amber",
+  "cursorShape": "filledBox",
+  "experimental.retroTerminalEffect": false,
+  "font": {
+    "builtinGlyphs": true,
+    "size": 16
+  },
+  "opacity": 100,
+  "useAcrylic": false
+}
 ```
 
 ## Generate a colored banner hero from an image
@@ -191,51 +310,6 @@ The page runs locally in the browser. Upload an image, tune width, contrast,
 background tolerance, blank cutoff, coverage, sharpening, color strategy, and
 minimum color luminance, then copy or download the generated `banner_hero`
 YAML block. The `Sample` button loads a built-in test image for quick tuning.
-
-## Install the Windows Terminal look
-
-Copy the shader to a stable local directory:
-
-```powershell
-$shaderDir = "$env:LOCALAPPDATA\WindowsTerminalShaders"
-New-Item -ItemType Directory -Force $shaderDir
-Copy-Item ".\shaders\cool-retro-frame-amber.hlsl" "$shaderDir\cool-retro-frame-amber.hlsl"
-```
-
-Open Windows Terminal settings JSON:
-
-1. Open Windows Terminal.
-2. Press `Ctrl+,`.
-3. Click `Open JSON file`.
-
-Then edit three sections:
-
-1. Add the object from `windows-terminal/cool-retro-amber.scheme.jsonc` into the top-level `schemes` array.
-2. Add the object from `windows-terminal/cool-retro-frame-amber.profile.jsonc` into `profiles.list`.
-3. In that profile, replace `experimental.pixelShaderPath` with your real shader path, for example:
-
-```jsonc
-"experimental.pixelShaderPath": "C:\\Users\\you\\AppData\\Local\\WindowsTerminalShaders\\cool-retro-frame-amber.hlsl"
-```
-
-Optional: add the entries from `windows-terminal/keybindings.jsonc` into the top-level `keybindings` or `actions` array, depending on your Windows Terminal settings schema.
-
-The original profile uses:
-
-```jsonc
-{
-  "antialiasingMode": "aliased",
-  "colorScheme": "Cool Retro Amber",
-  "cursorShape": "filledBox",
-  "experimental.retroTerminalEffect": false,
-  "font": {
-    "builtinGlyphs": true,
-    "size": 16
-  },
-  "opacity": 100,
-  "useAcrylic": false
-}
-```
 
 ## HLSL color mapping
 
