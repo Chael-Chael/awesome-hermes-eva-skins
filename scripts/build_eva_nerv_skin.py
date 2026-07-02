@@ -175,10 +175,10 @@ NERV_SPEC = EvaSkinSpec(
     image_name="",
     description="NERV command skin - red tinted Seele/NERV braille hero",
     colors={
-        "banner_border": "#ff0033",
+        "banner_border": "#ffffff",
         "banner_title": "#ffdddd",
         "banner_accent": "#ff3030",
-        "banner_dim": "#7a0606",
+        "banner_dim": "#d84a3f",
         "banner_text": "#ffe8e8",
         "ui_accent": "#ff3030",
         "ui_label": "#ffb3a3",
