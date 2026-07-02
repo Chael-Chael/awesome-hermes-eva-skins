@@ -13,7 +13,7 @@
   "font": {
     "builtinGlyphs": true,
     "face": "Ark Pixel 12px Mono zh_cn, Ark Pixel 12px Mono ja, Ark Pixel 12px Mono ko, Ark Pixel 12px Mono latin",
-    "size": 16,
+    "size": 15,
     "weight": "normal"
   },
   "guid": "{c50c5efb-383d-4a1e-81fa-e7df259a1399}",

@@ -22,11 +22,12 @@
 - `cool-retro-frame-amber.hlsl`（更风格化，终端大部分颜色会被映射为琥珀色）：更强的琥珀色统一映射、CRT 辉光和复古氛围，适合展示、录屏、截图、NERV 单色主题，以及想要整屏更像老式终端的时候。
 - `cool-retro-frame-readable.hlsl`（适合一般人的推荐配置，尽可能保留终端命令颜色）：保留更多原始色相和高亮差异，适合长时间阅读 README、代码、日志、命令输出和多色 banner 调试。
 
+> [!NOTE]
 > **如果对终端的显示效果不满意需要微调**，可以把 HLSL 文件以及 [Hammster/windows-terminal-shaders](https://github.com/Hammster/windows-terminal-shaders) 扔给你的 agent 做参考，让它帮你修改。
 >
 > **如果想要自己定制 Hermes 主题中的更多内容**，比如配色、状态指示图标和文案，可以使用 [cocktailpeanut/hermes-mod](https://github.com/cocktailpeanut/hermes-mod) 可视化调整。生成配置之后，建议让 agent 帮你整合进仓库里的主题 YAML；不要直接使用 hermes-mod 生成的完整配置，因为它暂时只会生成单色的 Hermes Agent 启动窗口标题和 hero，无法实现这个仓库里的多彩效果。
-
-本仓库只分发可复用的主题资产，不包含完整的本机 Windows Terminal `settings.json`，也不包含完整的 Hermes home 目录。那些文件通常会包含机器相关路径、profile ID、会话、缓存和认证信息。
+>
+> 如果出现 Hermes 窗口的 logo 显示不全或错位，可以尝试拉宽终端窗口，或者缩小终端字体。
 
 ## 包含内容
 
