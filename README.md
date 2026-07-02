@@ -19,11 +19,24 @@
 
 ## 皮肤预览
 
-| EVA-00 | EVA-01 |
-| --- | --- |
-| ![EVA-00 Hermes skin preview](assets/eva-00.png) | ![EVA-01 Hermes skin preview](assets/eva-01.png) |
-| EVA-02 | NERV Agent |
-| ![EVA-02 Hermes skin preview](assets/eva-02.png) | ![NERV Agent Hermes skin preview](assets/eva-nerv.png) |
+<table>
+  <tr>
+    <th align="center">EVA-00</th>
+    <th align="center">EVA-01</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/eva-00.png" alt="EVA-00 Hermes skin preview"></td>
+    <td align="center"><img src="assets/eva-01.png" alt="EVA-01 Hermes skin preview"></td>
+  </tr>
+  <tr>
+    <th align="center">EVA-02</th>
+    <th align="center">NERV Agent</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/eva-02.png" alt="EVA-02 Hermes skin preview"></td>
+    <td align="center"><img src="assets/eva-nerv.png" alt="NERV Agent Hermes skin preview"></td>
+  </tr>
+</table>
 
 ## HLSL 效果对比
 
