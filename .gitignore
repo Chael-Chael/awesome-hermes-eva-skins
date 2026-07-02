@@ -2,8 +2,8 @@
 *.tmp
 *.bak
 
-# Local browser-only experiment pages; keep them off GitHub.
-tools/*.html
+# Local browser-only experiment pages and copied sample assets.
+tools/
 
 # Local Hermes runtime state. Do not publish credentials, sessions, caches, or DBs.
 .env
