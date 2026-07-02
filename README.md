@@ -1,8 +1,21 @@
+<div align="center">
+
 # awesome-hermes-eva-skins
 
 简体中文 | [English](docs/README_en.md)
 
-把你的 Hermes Agent 塞进 NERV 控制室：一组 EVA 风格皮肤，配套 Windows Terminal 的复古 CRT 配置。
+<p>
+  <strong>把你的 Hermes Agent 塞进 NERV 控制室。</strong>
+</p>
+
+<p>
+  EVA 风格 Hermes 皮肤合集，配套 Windows Terminal 的复古 CRT 配置。<br>
+  包含像素字体、HLSL shader、终端 profile 和可复用主题 YAML。
+</p>
+
+[皮肤预览](#皮肤预览) · [快速安装](#安装方式-1最简单自动化安装版) · [手动安装](#安装方式-2手动安装版) · [HLSL 逻辑](#hlsl-色彩映射逻辑) · [故障排查](#故障排查)
+
+</div>
 
 ## 皮肤预览
 

@@ -1,8 +1,21 @@
+<div align="center">
+
 # awesome-hermes-eva-skins
 
 [简体中文](../README.md) | English
 
-Drop your Hermes Agent into a NERV control room: EVA-style skins paired with a retro CRT setup for Windows Terminal.
+<p>
+  <strong>Drop your Hermes Agent into a NERV control room.</strong>
+</p>
+
+<p>
+  EVA-style Hermes skins paired with a retro CRT setup for Windows Terminal.<br>
+  Includes pixel fonts, HLSL shaders, terminal profiles, and reusable theme YAML.
+</p>
+
+[Skin Previews](#skin-previews) · [Quick Install](#option-1-simple-automated-install) · [Manual Install](#option-2-manual-install) · [HLSL Logic](#hlsl-color-mapping) · [Troubleshooting](#troubleshooting)
+
+</div>
 
 ## Skin previews
 
