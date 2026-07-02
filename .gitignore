@@ -24,3 +24,8 @@ __pycache__/
 .pytest_cache/
 .venv/
 .vscode/
+.codex/
+.agents/
+
+# Generated screenshots/previews are kept locally only.
+screenshots/
