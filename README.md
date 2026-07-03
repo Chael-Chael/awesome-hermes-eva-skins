@@ -56,6 +56,10 @@
 > 如果出现 Hermes 窗口的 logo 显示不全或错位，可以尝试拉宽终端窗口，或者缩小终端字体。
 
 
+## 更新日志
+
+- 2026-07-03：降低 `cool-retro-frame-readable.hlsl` 的 glow blur radius，将 `SCALED_GAUSSIAN_SIGMA` 从 `2.0f * Scale` 调整为 `1.2f * Scale`，缓解 readable 配置下字体边缘虚影。
+
 ## 包含内容
 
 - `skins/eva-00.yaml`、`skins/eva-01.yaml`、`skins/eva-02.yaml`、`skins/eva-nerv.yaml` - Hermes CLI 皮肤。

@@ -15,7 +15,7 @@ cbuffer PixelShaderSettings
 
 #define SCANLINE_FACTOR 0.26f
 #define SCALED_SCANLINE_PERIOD Scale
-#define SCALED_GAUSSIAN_SIGMA (2.0f * Scale)
+#define SCALED_GAUSSIAN_SIGMA (1.2f * Scale)
 #define GLOW_STRENGTH 0.40f
 #define ENABLE_GRAIN 1
 #define GRAIN_INTENSITY 0.012f
