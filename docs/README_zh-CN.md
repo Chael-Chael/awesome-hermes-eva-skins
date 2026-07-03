@@ -53,7 +53,7 @@
 >
 > **如果想要自己定制 Hermes 主题中的更多内容**，比如配色、状态指示图标和文案，可以使用 [cocktailpeanut/hermes-mod](https://github.com/cocktailpeanut/hermes-mod) 可视化调整。生成配置之后，建议让 agent 帮你整合进仓库里的主题 YAML；不要直接使用 hermes-mod 生成的完整配置，因为它暂时只会生成单色的 Hermes Agent 启动窗口标题和 hero，无法实现这个仓库里的多彩效果。
 >
-> 如果出现 Hermes 窗口的 logo 显示不全或错位，可以尝试拉宽终端窗口，或者缩小终端字体。
+> **如果出现 Hermes 窗口的 logo 显示不全或错位**，可以尝试拉宽终端窗口，或者缩小终端字体。
 
 ## 包含内容
 
