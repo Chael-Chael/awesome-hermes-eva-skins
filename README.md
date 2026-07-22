@@ -415,3 +415,13 @@ float3 foreground = lerp(CRT_FONT_COLOR, chromaForeground, CRT_CHROMA);
 - [Cronos - "The EVA'S - Neon Genesis Evangelion."](https://pixeljoint.com/pixelart/151379.htm) - EVA 机体侧脸像素画参考。
 
 shader 归属说明见 `THIRD_PARTY_NOTICES.md`。
+
+## Star History
+
+<a href="https://star-history.com/#Chael-Chael/awesome-hermes-eva-skins&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Chael-Chael/awesome-hermes-eva-skins&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Chael-Chael/awesome-hermes-eva-skins&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Chael-Chael/awesome-hermes-eva-skins&type=Date" />
+  </picture>
+</a>
