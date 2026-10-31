@@ -331,13 +331,26 @@ function Install-BundledFonts {
             continue
         }
 
-        Copy-Item -LiteralPath $source -Destination $target -Force
+        # A font that is already loaded stays mapped, so a second run cannot overwrite
+        # it. Keep the installed copy instead of aborting the whole installation.
+        try {
+            Copy-Item -LiteralPath $source -Destination $target -Force
+        } catch {
+            if (-not (Test-Path -LiteralPath $target -PathType Leaf)) {
+                throw
+            }
+            Write-Warning "Could not replace $target (in use by the font subsystem). Keeping the installed copy."
+        }
+
         New-ItemProperty -Path $fontReg -Name $font.Name -Value $font.File -PropertyType String -Force | Out-Null
     }
 
     if (-not $DryRun) {
         try {
             Add-Type -Namespace Win32 -Name NativeMethods -MemberDefinition @"
+[System.Runtime.InteropServices.DllImport("gdi32.dll", CharSet=System.Runtime.InteropServices.CharSet.Unicode)]
+public static extern int AddFontResource(string lpFilename);
+
 [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError=true, CharSet=System.Runtime.InteropServices.CharSet.Auto)]
 public static extern System.IntPtr SendMessageTimeout(
         System.IntPtr hWnd,
@@ -348,10 +361,18 @@ public static extern System.IntPtr SendMessageTimeout(
         uint uTimeout,
         out System.UIntPtr lpdwResult);
 "@
+            # Copying the files and writing HKCU entries is not enough on its own: Windows
+            # loads per-user fonts at logon, so the running session still has none and
+            # Windows Terminal reports "font not found" immediately after a fresh install.
+            foreach ($font in $fonts) {
+                $loaded = [Win32.NativeMethods]::AddFontResource((Join-Path $fontDest $font.File))
+                Write-Verbose "AddFontResource $($font.File) -> $loaded"
+            }
+
             $result = [UIntPtr]::Zero
             [Win32.NativeMethods]::SendMessageTimeout([IntPtr]0xffff, 0x001D, [UIntPtr]::Zero, $null, 0x0002, 1000, [ref]$result) | Out-Null
         } catch {
-            Write-Warning "Fonts were copied, but Windows font cache notification failed. Restart Windows Terminal if the font is not visible yet."
+            Write-Warning "Fonts were copied, but loading them into the current session failed. Sign out and back in if Windows Terminal reports the font as missing."
         }
     }
 }
@@ -492,14 +513,17 @@ function Install-WindowsTerminalProfile {
 
     $settings = Read-JsoncFile -Path $settingsFile
 
-    $schemes = Convert-ToArray -Value (Get-ObjectProperty -Object $settings -Name "schemes")
+    # PowerShell unrolls a single-element collection returned from a function, so a
+    # helper that returns one item yields an object rather than an array. Wrap every
+    # array-typed assignment with @() so the property stays a JSON array.
+    $schemes = @(Convert-ToArray -Value (Get-ObjectProperty -Object $settings -Name "schemes"))
 
     $profiles = Get-ObjectProperty -Object $settings -Name "profiles"
     if ($null -eq $profiles) {
         $profiles = [pscustomobject]@{}
         Set-ObjectProperty -Object $settings -Name "profiles" -Value $profiles
     }
-    $profileList = Convert-ToArray -Value (Get-ObjectProperty -Object $profiles -Name "list")
+    $profileList = @(Convert-ToArray -Value (Get-ObjectProperty -Object $profiles -Name "list"))
 
     foreach ($themeSpec in (Get-ThemeSpecs -SelectedTheme $SelectedTheme)) {
         $schemePath = Join-Path $windowsTerminalDir $themeSpec.SchemeFile
@@ -513,8 +537,8 @@ function Install-WindowsTerminalProfile {
         $profile = Read-JsoncFile -Path $profilePath
         Set-ObjectProperty -Object $profile -Name "experimental.pixelShaderPath" -Value $shaderPath
 
-        $schemes = Upsert-ByObjectProperty -Items $schemes -PropertyName "name" -PropertyValue $themeSpec.SchemeName -Replacement $scheme
-        $profileList = Upsert-ByObjectProperty -Items $profileList -PropertyName "name" -PropertyValue $themeSpec.ProfileName -Replacement $profile
+        $schemes = @(Upsert-ByObjectProperty -Items $schemes -PropertyName "name" -PropertyValue $themeSpec.SchemeName -Replacement $scheme)
+        $profileList = @(Upsert-ByObjectProperty -Items $profileList -PropertyName "name" -PropertyValue $themeSpec.ProfileName -Replacement $profile)
 
         Write-DryRun "Would upsert scheme '$($themeSpec.SchemeName)' and profile '$($themeSpec.ProfileName)'."
     }
@@ -525,16 +549,16 @@ function Install-WindowsTerminalProfile {
     if (-not $SkipKeybindings) {
         $keybindingsPath = Join-Path $windowsTerminalDir "keybindings.jsonc"
         Get-RequiredPath -Path $keybindingsPath -Description "Windows Terminal keybindings snippet" | Out-Null
-        $keybindings = Convert-ToArray -Value (Read-JsoncFile -Path $keybindingsPath)
+        $keybindings = @(Convert-ToArray -Value (Read-JsoncFile -Path $keybindingsPath))
 
         $targetProperty = "actions"
         if ($null -ne (Get-ObjectProperty -Object $settings -Name "keybindings")) {
             $targetProperty = "keybindings"
         }
 
-        $actions = Convert-ToArray -Value (Get-ObjectProperty -Object $settings -Name $targetProperty)
+        $actions = @(Convert-ToArray -Value (Get-ObjectProperty -Object $settings -Name $targetProperty))
         foreach ($binding in $keybindings) {
-            $actions = Add-UniqueAction -Actions $actions -Action $binding
+            $actions = @(Add-UniqueAction -Actions $actions -Action $binding)
         }
         Set-ObjectProperty -Object $settings -Name $targetProperty -Value $actions
         Write-DryRun "Would upsert Shift+F10 and Shift+F11 shortcuts into $targetProperty."
