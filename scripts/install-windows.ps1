@@ -492,14 +492,17 @@ function Install-WindowsTerminalProfile {
 
     $settings = Read-JsoncFile -Path $settingsFile
 
-    $schemes = Convert-ToArray -Value (Get-ObjectProperty -Object $settings -Name "schemes")
+    # PowerShell unrolls a single-element collection returned from a function, so a
+    # helper that returns one item yields an object rather than an array. Wrap every
+    # array-typed assignment with @() so the property stays a JSON array.
+    $schemes = @(Convert-ToArray -Value (Get-ObjectProperty -Object $settings -Name "schemes"))
 
     $profiles = Get-ObjectProperty -Object $settings -Name "profiles"
     if ($null -eq $profiles) {
         $profiles = [pscustomobject]@{}
         Set-ObjectProperty -Object $settings -Name "profiles" -Value $profiles
     }
-    $profileList = Convert-ToArray -Value (Get-ObjectProperty -Object $profiles -Name "list")
+    $profileList = @(Convert-ToArray -Value (Get-ObjectProperty -Object $profiles -Name "list"))
 
     foreach ($themeSpec in (Get-ThemeSpecs -SelectedTheme $SelectedTheme)) {
         $schemePath = Join-Path $windowsTerminalDir $themeSpec.SchemeFile
@@ -513,8 +516,8 @@ function Install-WindowsTerminalProfile {
         $profile = Read-JsoncFile -Path $profilePath
         Set-ObjectProperty -Object $profile -Name "experimental.pixelShaderPath" -Value $shaderPath
 
-        $schemes = Upsert-ByObjectProperty -Items $schemes -PropertyName "name" -PropertyValue $themeSpec.SchemeName -Replacement $scheme
-        $profileList = Upsert-ByObjectProperty -Items $profileList -PropertyName "name" -PropertyValue $themeSpec.ProfileName -Replacement $profile
+        $schemes = @(Upsert-ByObjectProperty -Items $schemes -PropertyName "name" -PropertyValue $themeSpec.SchemeName -Replacement $scheme)
+        $profileList = @(Upsert-ByObjectProperty -Items $profileList -PropertyName "name" -PropertyValue $themeSpec.ProfileName -Replacement $profile)
 
         Write-DryRun "Would upsert scheme '$($themeSpec.SchemeName)' and profile '$($themeSpec.ProfileName)'."
     }
@@ -525,16 +528,16 @@ function Install-WindowsTerminalProfile {
     if (-not $SkipKeybindings) {
         $keybindingsPath = Join-Path $windowsTerminalDir "keybindings.jsonc"
         Get-RequiredPath -Path $keybindingsPath -Description "Windows Terminal keybindings snippet" | Out-Null
-        $keybindings = Convert-ToArray -Value (Read-JsoncFile -Path $keybindingsPath)
+        $keybindings = @(Convert-ToArray -Value (Read-JsoncFile -Path $keybindingsPath))
 
         $targetProperty = "actions"
         if ($null -ne (Get-ObjectProperty -Object $settings -Name "keybindings")) {
             $targetProperty = "keybindings"
         }
 
-        $actions = Convert-ToArray -Value (Get-ObjectProperty -Object $settings -Name $targetProperty)
+        $actions = @(Convert-ToArray -Value (Get-ObjectProperty -Object $settings -Name $targetProperty))
         foreach ($binding in $keybindings) {
-            $actions = Add-UniqueAction -Actions $actions -Action $binding
+            $actions = @(Add-UniqueAction -Actions $actions -Action $binding)
         }
         Set-ObjectProperty -Object $settings -Name $targetProperty -Value $actions
         Write-DryRun "Would upsert Shift+F10 and Shift+F11 shortcuts into $targetProperty."
