@@ -331,13 +331,26 @@ function Install-BundledFonts {
             continue
         }
 
-        Copy-Item -LiteralPath $source -Destination $target -Force
+        # A font that is already loaded stays mapped, so a second run cannot overwrite
+        # it. Keep the installed copy instead of aborting the whole installation.
+        try {
+            Copy-Item -LiteralPath $source -Destination $target -Force
+        } catch {
+            if (-not (Test-Path -LiteralPath $target -PathType Leaf)) {
+                throw
+            }
+            Write-Warning "Could not replace $target (in use by the font subsystem). Keeping the installed copy."
+        }
+
         New-ItemProperty -Path $fontReg -Name $font.Name -Value $font.File -PropertyType String -Force | Out-Null
     }
 
     if (-not $DryRun) {
         try {
             Add-Type -Namespace Win32 -Name NativeMethods -MemberDefinition @"
+[System.Runtime.InteropServices.DllImport("gdi32.dll", CharSet=System.Runtime.InteropServices.CharSet.Unicode)]
+public static extern int AddFontResource(string lpFilename);
+
 [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError=true, CharSet=System.Runtime.InteropServices.CharSet.Auto)]
 public static extern System.IntPtr SendMessageTimeout(
         System.IntPtr hWnd,
@@ -348,10 +361,18 @@ public static extern System.IntPtr SendMessageTimeout(
         uint uTimeout,
         out System.UIntPtr lpdwResult);
 "@
+            # Copying the files and writing HKCU entries is not enough on its own: Windows
+            # loads per-user fonts at logon, so the running session still has none and
+            # Windows Terminal reports "font not found" immediately after a fresh install.
+            foreach ($font in $fonts) {
+                $loaded = [Win32.NativeMethods]::AddFontResource((Join-Path $fontDest $font.File))
+                Write-Verbose "AddFontResource $($font.File) -> $loaded"
+            }
+
             $result = [UIntPtr]::Zero
             [Win32.NativeMethods]::SendMessageTimeout([IntPtr]0xffff, 0x001D, [UIntPtr]::Zero, $null, 0x0002, 1000, [ref]$result) | Out-Null
         } catch {
-            Write-Warning "Fonts were copied, but Windows font cache notification failed. Restart Windows Terminal if the font is not visible yet."
+            Write-Warning "Fonts were copied, but loading them into the current session failed. Sign out and back in if Windows Terminal reports the font as missing."
         }
     }
 }
